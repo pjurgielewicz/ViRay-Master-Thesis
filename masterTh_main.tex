@@ -1,0 +1,341 @@
+\documentclass[a4paper, 12pt, twoside]{book}
+
+%%\usepackage{amsmath}
+%%\usepackage[MeX]{polski}
+%\usepackage[english]{babel}
+%%\usepackage[polish]{babel}
+%\usepackage[utf8]{inputenc}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[polish]{babel}
+\usepackage[T1]{fontenc}
+
+
+\usepackage{latexsym}
+\usepackage{float}
+\usepackage{pdflscape}
+
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{indentfirst}
+\usepackage{xcolor}
+
+\usepackage{adjustbox}
+\usepackage[a4paper, twoside, inner=4cm, outer=2cm, top=3cm, bottom=3cm, headsep=1.5cm, headheight=16pt]{geometry}
+\usepackage{titlesec}
+\usepackage{cool}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{tabulary}
+\pagestyle{fancy}
+\fancyhead{} % clear all header fields
+\fancyhead[RO,LE]{\thepage}
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter.\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection.\ #1}} 
+\fancyhead[LO]{\leftmark}
+\fancyhead[RE]{\rightmark}
+%\fancyhead[C]{\bfseries \color{red}{Work in progress...}}
+\fancyfoot{} % clear all footer fields
+\renewcommand{\headrulewidth}{0.8pt}
+
+\fancyheadoffset[]{0pt}
+
+\fancypagestyle{plain}{
+\fancyhf{} % clear all header and footer fields
+%\fancyfoot[C]{\bfseries \thepage \\\color{red}{Work in progress...}} % except the center
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+
+\fancypagestyle{fancytoc}{
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+ 
+ 
+\setlength{\parindent}{1cm}
+\setlength{\parskip}{0cm}
+\linespread{1.3} %interlinia
+\setlength{\parsep}{0cm}
+\setlist[itemize]{itemsep=0mm}
+\setlist[enumerate]{itemsep=0mm}
+\setlist[description]{itemsep=0mm}
+
+
+\titleformat
+{\chapter} % command
+[display] % shape
+{\bfseries\LARGE} % format
+{Rozdział \ \thechapter} % label
+{1ex} % sep
+{
+    \rule{\textwidth}{0.5pt}
+    \vspace{0.5ex}
+    \centering
+} % before-code
+[
+\vspace{-2ex}%
+\rule{\textwidth}{1.25pt}
+] % after-code
+
+% will apply to all captions
+\usepackage[labelfont=bf,textfont=normalfont]{caption}
+%\setlength\labelsep{.5em}  
+
+\usepackage[breaklinks]{hyperref}
+
+\hypersetup{
+    colorlinks=false, 
+    citecolor=blue
+    }
+ % musi być na końcu]
+ 
+\newcommand{\addimage}[4]{
+\begin{figure}[H]
+\centering
+\includegraphics[#2]{#1}
+\caption{#3}
+\label{#4}
+\end{figure}}
+
+
+\begin{document}
+%\bibliographystyle{IEEEtran}
+\bibliographystyle{merlin}
+%\nocite{*} %wszystkie wpisy trafią do bibliografii
+
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\lstset
+{
+language=Python, 
+tabsize=2,  
+basicstyle=\footnotesize, 
+keywordstyle=\textbf,
+breakatwhitespace=true,         % sets if automatic breaks should only happen at whitespace
+breaklines=true,                 % sets automatic line breaking
+numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+numbersep=5pt,                   % how far the line-numbers are from the code
+numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+stringstyle=\color{mymauve},
+commentstyle=\color{mygreen},
+rulecolor=\color{black},
+%frame=single,	                   % adds a frame around the code
+keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+}
+
+% =====  STRONA TYTULOWA PRACY MAGISTERSKIEJ ====
+
+
+\thispagestyle{empty}
+\newgeometry{hmargin={2cm, 2cm}, height=10.0in}
+
+%% ------------------------ NAGLOWEK STRONY ---------------------------------
+\begin{table}[H]
+\resizebox{\textwidth}{!} {
+\begin{tabular}{cc}
+\multirow{2}{*}{\includegraphics[height=37.5mm]{img/agh.jpg}} & 
+\phantom{tmp} \\ 
+& \phantom{tmp} \\
+
+& {
+\begin{small}
+\textsc{Akademia Górniczo-Hutnicza w Krakowie}
+\end{small}} \\ 
+& {\small{Wydział Fizyki i Informatyki Stosowanej}}
+\end{tabular}
+}
+\end{table}
+~\\ % NEEDED HACK..
+\rule{\textwidth}{3pt}\\
+\rule[2ex]
+\textwidth{1pt}\\
+\vspace{7ex}
+\begin{center}
+{\bf\LARGE{Praca magisterska}}\\
+\vspace{13ex}
+
+
+
+
+% --------------------------- IMIE I NAZWISKO -------------------------------
+{\bf\Large{Paweł Jurgielewicz}}\\
+\vspace{3ex}
+{ \small kierunek studiów:} {\bf\normalsize{fizyka techniczna}}\\
+\vspace{10ex}
+%% ------------------------ TYTUL PRACY --------------------------------------
+{\bf\large{
+Vivado HLS jako nowoczesne narzędzie wspierające tworzenie wyspecjalizowanych układów elektronicznych na przykładzie akceleratora realistycznej grafiki trójwymiarowej czasu rzeczywistego metodą ray tracingu
+}}\\
+\vspace{14ex}
+%% ------------------------ OPIEKUN PRACY ------------------------------------
+{ \Large {Opiekun:}} {\bf\Large{dr inż. Daniel Lewandowski}}\\
+\vspace{18ex}
+\bf\large{Kraków, czerwiec 2018}
+\end{center}
+%% =====  TYL STRONY TYTULOWEJ PRACY INŻYNIERSKIEJ  ====
+\newpage
+\thispagestyle{empty}
+
+\newgeometry{top=5cm, bottom=5cm,inner=3cm, outer=3cm, headsep=1.5cm, headheight=16pt}
+%%oświadczenie
+\vspace{14em}
+\begin{center}
+\Large{\bf{Oświadczenie}}
+\end{center}
+
+\textit{Oświadczam, świadomy odpowiedzialności karnej za poświadczenie nieprawdy, że niniejszą pracę dyplomową wykonałem) osobiście i samodzielnie i nie korzystałem) ze źródeł innych niż wymienione w pracy.}
+
+\vspace{14ex}
+
+\begin{center}
+\begin{tabular}{lr}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ &
+................................................................. \\
+~ & { (czytelny podpis)} \\
+\end{tabular}
+\end{center}
+
+%% =====  TYL STRONY TYTULOWEJ PRACY MAGISTERSKIEJKIEJ ====
+
+\newpage
+\pagestyle{empty}
+\rightline{Kraków, ?? czerwca 2018}
+\begin{center}
+{\bf Tematyka pracy magisterskiej i praktyki dyplomowej
+Pawła Jurgielewicza,
+studenta V roku studiów kierunku fizyka techniczna}\\
+\end{center}
+
+Temat pracy magisterskiej:
+{\bf Vivado HLS jako nowoczesne narzędzie wspierające tworzenie wyspecjalizowanych układów elektronicznych na przykładzie akceleratora realistycznej grafiki trójwymiarowej czasu rzeczywistego metodą ray tracingu}\\
+
+\begin{tabular}{rl}
+
+Opiekun pracy:                  & dr inż. Daniel Lewandowski\\
+Recenzenci pracy:               & dr inż. X Y Z\\
+Miejsce praktyki dyplomowej:    & Centrum Badawczo-Rozwojowe ABB, Kraków\\
+\end{tabular}
+
+\begin{center}
+{\bf Program pracy magisterskiej i praktyki dyplomowej}
+\end{center}
+
+\begin{enumerate}
+\item Omówienie realizacji pracy magisterskiej z opiekunem.
+\item Praktyka dyplomowa:
+\begin{itemize}
+\item zebranie i opracowanie literatury dotyczącej tematu pracy,
+\item przygotowanie wstępnej działającej wersji oprogramowania do ray tracingu,
+\item ewaluacja przydatności stworzonego systemu dla zastosowań w czasie rzeczywistym,
+\item sporządzenie sprawozdania z praktyki.
+\end{itemize}
+\item Dalsze usprawnianie akceleratora stworzonego w ramach praktyki dyplomowej.
+\item Całkowita zmiana sposobu podejścia do rozwiązania problemu.
+\item Rozbudowa funkcjonalna, optymalizacje algorytmów oraz sprawdzanie poprawności uzyskiwanych obrazów.
+\item Zebranie i opracowanie wyników obliczeń.
+\item Zatwierdzenie rezultatów przez opiekuna oraz implementacja projektu w układzie FPGA.
+\item Opracowanie redakcyjne pracy.
+\end{enumerate}
+
+\noindent
+Termin oddania w dziekanacie: ?? czerwca 2018\\
+
+\begin{center}
+\begin{tabular}{lcr}
+.............................................................. & ~~~ &
+.............................................................. \\
+(podpis kierownika katedry) & & (podpis opiekuna) \\
+\end{tabular}
+\end{center}
+
+%% =====  RECENZJE  ====
+
+\newpage
+\thispagestyle{empty}
+Recenzja opiekuna
+\newpage
+\thispagestyle{empty}
+Recenzja recenzenta
+%% =====  STRONA TYTUŁOWA PRACY INŻYNIERSKIEJ  ====
+
+\clearpage
+\phantomsection
+
+\newpage
+\newgeometry{top=5cm, bottom=5cm,inner=3cm, outer=3cm, headsep=1.5cm, headheight=16pt}
+\thispagestyle{empty}
+\vspace*{15cm} \vfill
+\begin{flushright} 
+\begin{minipage}[!h]{7.5cm}
+{\Large\itshape {PODZIĘKOWANIA}}
+\end{minipage}
+\end{flushright}   
+\restoregeometry
+\clearpage{\pagestyle{empty}\cleardoublepage}
+
+\addcontentsline{toc}{chapter}{Spis treści}
+\tableofcontents
+\clearpage{\pagestyle{empty}\cleardoublepage}
+
+\addcontentsline{toc}{chapter}{Spis obrazów}
+\listoffigures
+\clearpage{\pagestyle{empty}\cleardoublepage}
+
+%\addcontentsline{toc}{chapter}{List of tables}
+%\listoftables
+%\clearpage{\pagestyle{empty}\cleardoublepage}
+
+%\addcontentsline{toc}{chapter}{Spis tabel}
+%\listoftables
+%\clearpage{\pagestyle{empty}\cleardoublepage}
+
+%\addcontentsline{toc}{chapter}{Wykaz skrótów}
+%\input{wykaz}
+\clearpage{\pagestyle{empty}\cleardoublepage}
+
+%% =====  ROZDZIAŁ WSTĘPNY  ====
+
+\input{chapters/intro/intro}
+\clearpage{\pagestyle{empty}\cleardoublepage}
+
+%% =====  RAY TRACING I FIZYKA  ====
+
+\input{chapters/ch1/ray_tracing}
+\clearpage{\pagestyle{empty}\cleardoublepage}
+
+%% =====  UKŁADY FPGA  ====
+
+\input{chapters/ch2/fpga}
+\clearpage{\pagestyle{empty}\cleardoublepage}
+
+%% =====  VIRAY  ====
+
+\input{chapters/ch3/viray}
+\clearpage{\pagestyle{empty}\cleardoublepage}
+
+%% =====  PODSUMOWANIE  ====
+
+\input{chapters/summary/summary}
+\clearpage{\pagestyle{empty}\cleardoublepage}
+
+%% =====  BIBLIOGRAFIA  ====
+
+\addcontentsline{toc}{chapter}{Bibliografia}
+%\bibliography{IEEEabrv,bibliography}
+
+\appendix
+%\input{chapters/Appendix}
+
+\bibliography{bibliography}
+\clearpage{\pagestyle{empty}\cleardoublepage}
+\end{document}
