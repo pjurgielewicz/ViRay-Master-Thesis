@@ -1,1 +1,23 @@
 \chapter{Budowa akceleratora grafiki}
+\section{Założenia}
+
+\section{Dwa podejścia do tworzenia akceleratora}
+\subsection{Sieć wyspecjalizowanych softprocessorów}
+RISC, własne iteracje - do czego doszliśmy, prezentacja ISA, wydajność, czemu jest źle (DEPENDENCY oraz AREA)
+\subsection{Wyspecjalizowany akcelerator o ustalonej funkcjonalności}
+\subsubsection{Przepływ danych przez akcelerator}
+Zgrubne i bardziej szczegółowe opisanie funkcjonalności poszczególnych bloczków
+\subsubsection{Optymalizacje czasu i powierzchni za pomocą dyrektyw}
+DATAFLOW, ATAN2, ACOS
+
+\subsection{Ograniczenia}
+Brak MC, ograniczona ilość obiektów i świateł, brak obsługi przezroczystości, obrazy LDR, brak swobodnej orientacji (z uwagi na ograniczenia technologiczne)
+
+\section{Implementacja w układzie}
+\subsection{Przepływ danych}
+\subsubsection{MicroBlaze}
+\subsubsection{ADV7511}
+Jaki max zegar udało się uzyskać???
+
+\section{Oprogramowanie mikrokontrolera}
+Inicjalizacja, obsługa kontrolera animacji, prezentacja przykładowej sceny i wydajności.

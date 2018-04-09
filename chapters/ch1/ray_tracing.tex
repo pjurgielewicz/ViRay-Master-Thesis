@@ -1,2 +1,56 @@
 \chapter{Śledzenie promieni}
-kfwkefnjw
+
+\section{Współczesne techniki generowania trójwymiarowej grafiki komputerowej}
+\subsection{Rasteryzacja}
+Proces rasteryzacji w ogólnym rozumieniu polega na transformacji grafiki wektorowej, czyli takiej, która opisywana jest poprzez położenia, kierunki i odległości, do płaskiego obrazu złożonego z określonej ilości pikseli w pionie i poziomie. W przypadku grafiki trójwymiarowej i posługiwania się biblioteką OpenGL~\cite{OPENGL46} wejście całego potoku przetwarzania stanowi zbiór obiektów (przeważnie trójkątów), z których każdy zbudowany jest z wierzchołków. Każdy wierzchołek $\vec{v_i}$ zaś posiada szereg atrybutów takich jak:
+\begin{itemize}
+\item macierz przekształceń 4x4 we współrzędnych obserwatora~(kamery) $\mathbf{MV_i}$ zawierającą informację o jego położeniu, skali, obrocie oraz ewentualnych deformacjach~(np. pochyleniu),
+\item współrzędne tekstury,
+\item normalna - o ile w przypadku pojedynczego punktu podawanie normalnej nie ma sensu, o tyle trzeba pamiętać, iż punkty te definiują odpowiednie płaszczyzny obiektów; przy takiej interpretacji można mówić o normalnej do płaszczyzny w danym jej wierzchołku, co wykorzystywane jest chociażby w procesie wizualnego bądź też rzeczywistego~(wykorzystując teselację\footnote{Technika dzielenia siatki obiektu na mniejsze, dzięki czemu obiekt wydaje się gładszy i dokładniejszy niż ten, który pierwotnie został przekazany do renderowania.}) wygładzania obiektów,
+\item parametry dotyczące {\color{red}materiału\footnote{ODWOŁANIE???}}, z którego zbudowany jest opisywany obiekt,
+\item i innych\footnote{W dobie programowalnych potoków przetwarzania programiści oraz artyści ograniczeni są właściwie tylko przez własną wyobraźnię. Dla przykładu animacja pomiędzy dwoma położeniami punktów będzie wymagać nie tylko aktualnej macierzy przekształceń, ale również drugiej odpowiadającej następnej klatce kluczowej animacji macierzy wraz z parametrem mówiącym o położeniu pomiędzy tymi dwoma stanami.}.
+\end{itemize}
+Atrybuty te są następnie wykorzystywane na kolejnych etapach tworzenia obrazu.
+Ważnym globalnym parametrem jest również \textit{macierz projekcji} $\mathbf{P}$, która decyduje, jaka część świata zostanie odwzorowana na finalnym obrazie. Dokonuje ona transformacji w taki sposób, aby przekształcone za jej pomocą wierzchołki znajdujące się wewnątrz ściętego stożka widzenia miały współrzędne $[x,y] \in [-1, 1]^2$. Postać tej macierzy zależy od~\cite{PerspectiveMatrix}:
+\begin{itemize}
+\item bliskiej płaszczyzny odcięcia \textit{n},
+\item dalekiej płaszczyzny odcięcia \textit{f},
+\item kąta rozwarcia stożka widoczności $\mathrm{\alpha}$
+\end{itemize}
+\addimage{chapters/ch1/img/perspective_projection2.png}{scale=0.33}{Rzut z góry na stożek widoczności z pozycji obserwatora $O$, tylko obiekty wewnątrz stożka opisanego parametrami $n$, $f$, oraz $\alpha$ zostaną narysowane całkowicie, te na brzegach będą wygenerowane częściowo}{Rzut z góry na stożek widoczności z pozycji obserwatora $O$}{ch1:img:perspectiveMatrix}
+i wygląda następująco:
+\begin{equation}
+P = 
+\begin{bmatrix}
+S & 0 & 0 & 0 \\ 
+0 & S & 0 & 0 \\ 
+0 & 0 & -\frac{f}{f-n} & -1\\ 
+0 & 0 & -\frac{fn}{f-n} & 0
+\end{bmatrix},\qquad \mathrm{gdzie\ }S = \frac{1}{\tan\frac{\alpha}{2}}.
+\end{equation}
+Wierzchołki przekształcone zgodnie z $\vec{v_{i}}^{'} = \mathbf{P}\cdot\mathbf{MV_i}\cdot \vec{v_i}$ i składające się na jeden prymityw geometryczny są na kolejnych etapach łączone ze sobą tworząc powierzchnię zajmującą określone pozycje pikseli na obrazie. 
+\addimage{chapters/ch1/img/triangle.png}{scale=0.8}{Poddany rasteryzacji trójkąt; siatka kwadratów odpowiada niepodzielnej siatce pikseli obrazu, wierzchołki zostały oznaczone czerwonymi punktami i połączone ze sobą, z uwagi na fakt, iż piksele są elementami dyskretnymi, odpowiednie algorytmy muszą zdecydować czy dana płaszczyzna w odpowiednio dużym stopniu zajmuje miejsce odpowiadające danemu pikselowi, w efekcie powstają postrzępione granice obiektów, dla pikseli znajdujących się wewnątrz (niebieskie) należy dokonać interpolacji atrybutów}{Poddany rasteryzacji trójkąt}{ch1:img:triangleRaster}
+Jako, że dokładne wartości atrybutów znane są tylko i wyłącznie dla wierzchołków to wewnątrz powierzchni atrybuty te muszą być interpolowane by móc na kolejnych etapach nadać pikselom pożądany kolor zgodny z przyjętym oświetleniem, materiałem i teksturą. Tak obliczone piksele, o ile znajdują się bliżej w przestrzeni obserwatora, mogą zostać jeszcze nadpisane przez kolejne powierzchnie. Wykorzystywany jest do tego \textit{bufor głębokości}~(ang. \textit{z-buffer}), którego rozmiar w pikselach odpowiada generowanemu obrazowi, zaś same piksele przechowują informację o aktualnie najbliższym położeniu. Jeśli aktualnie przetwarzany obiekt~(płaszczyzna) dla danego piksela znajduje się bliżej niż wszystko, co do tej pory zostało wyrenderowane, wartość bufora głębokości zostaje nadpisana w tym punkcie przez nową wartość głębi, a piksel obrazu zostanie obliczony na nowo - tym razem biorąc pod uwagę własności tego nowego obiektu. W przeciwnym razie, gdy piksel odpowiadający nowemu obiektowi jest dalej w przestrzeni widoku zostaje on odrzucony. Dzięki czemu nie są przeprowadzane dalsze obliczenia dla elementów, których obserwator i tak nie jest w stanie dostrzec, oszczędzając przy tym czas procesora.
+
+Powyższy opis procesu rasteryzacji, mimo iż znacznie uproszczony w stosunku do wykorzystywanych obecnie potoków przetwarzania~\cite{OPENGL_SUPERBIBLE}, zawiera sedno całej operacji i pozwala wyróżnić kilka jego najważniejszych cech.
+\begin{enumerate}
+\item Jest to proces, który idealnie nadaje się do zrównoleglenia obliczeń, dzięki temu, że każda płaszczyzna jest rysowana w sposób niezależny (synchronizacja danych jest wymagana jednak na etapie dostępu do bufora głębokości). Ma to swoje odzwierciedlenie w fakcie, że producenci procesorów graficznych od dawna produkują urządzenia zawierające setki a nawet tysiące równoległych jednostek przetwarzających~\cite{NV_Hardware}\cite{AMD_Hardware}.
+\item Z uwagi na fakt, iż określenie pozycji w przestrzeni widoku wymaga znajomości pierwotnego położenia wierzchołka $\vec{v_i}$ to sam obiekt, którego część ten wierzchołek reprezentuje, musi zostać przybliżony przez sieć wierzchołków. Wynika z tego, iż chcąc uzyskać lepsze odwzorowanie krzywizny powierzchni należy dysponować gęstszą siatkę punktów.
+\addimage{chapters/ch1/img/spheres.png}{scale=0.5}{Triangulacja obiektów na przykładzie sfery - im więcej podziałów powierzchni tym gładszy obiekt jednak czas renderowania dłuższy}{ch1:img:shpereTriangulation}{Triangulacja sfery}
+\item Procesor przetwarzający aktualną powierzchnię nie wie nic o pozostałych obiektach w scenie. W szczególności nie wie nic o tym czy dana powierzchnia na drodze do źródła światła jest przesłaniana przez inne płaszczyzny czy też nie. Cienie generowane muszą być zatem inaczej. Najprostszą metodą jest wygenerowanie tzw. \textit{mapy cieni} (ang. \textit{shadow map}) z pozycji źródła światła. Jest to tekstura, która określa punkty, do których dociera oświetlenie. W kolejnej fazie scena jest już renderowana normalnie z pozycji obserwatora i do określenia miejsc ocienionych używa się informacji z tekstury wygenerowanej wcześniej. Nie jest to jednak proces idealny. Z uwagi na fakt, że mapa cieni jest teksturą jej rozdzielczość w znaczący sposób wpływa na jakość obrazu - im większa tym granice między cieniem a powierzchnią oświetloną są mniej postrzępione. Dodatkowo stosuje się filtrację mapy cieni dla uzyskania gładszych przejść~\cite{GPU_GEMS3_PCF}. Podobne trudności sprawia również uzyskanie poprawnych (tzn. zgodnych z perspektywą i zasadami fizyki) odbić np. na powierzchniach lustrzanych czy wodzie. W prostych przypadkach, takich jak płaskie lustro, można to wykonać poprzez narysowanie na płaszczyźnie lustrzanego odbicia sceny względem tej płaszczyzny. Jednak w większości wypadków powierzchnie odbijające są znacznie bardziej skomplikowane, przez co autorzy skłaniają się do wykorzystaniu technik bazujących na śledzeniu promieni~\cite{GPU_GEMS3_MIRRORS}.
+\end{enumerate}
+W związku z przytoczonymi powyżej faktami można stwierdzić, iż rasteryzacja jest stosunkowo szybkim procesem (o ile obliczenia są zrównoleglone) opartym o informacje lokalne (dla danej powierzchni określonej przez zbiór jej wierzchołków), która musi posiłkować się różnymi (nieraz bardzo wyrafinowanymi) technikami przybliżonymi w celu stworzenia iluzji realizmu świata przedstawionego.
+
+
+\subsection{Śledzenie promieni - zagadnienie widoczności}
+
+\section{Fizyczne podstawy generowania realistycznych obrazów}
+\subsection{Bieg promieni świetlnych w przestrzeni}
+\subsection{Fotometria}
+\subsubsection{Modelowanie materiałów}
+Lambert, Phong, Oren-Nayar, Torrance-Sparrow
+\subsection{Dystrybucja energii na granicy dwóch ośrodków - równania Fresnela}
+
+\section{Metoda Monte Carlo}
+\subsection{Przykłady zastosowań}
+symulacja rozmycia obrazu, źródła światła skończonych rozmiarów, lśniące powierzchnie

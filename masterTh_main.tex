@@ -1,7 +1,7 @@
 \documentclass[a4paper, 12pt, twoside]{book}
 
 %%\usepackage{amsmath}
-%%\usepackage[MeX]{polski}
+%\usepackage[MeX]{polski}
 %\usepackage[english]{babel}
 %%\usepackage[polish]{babel}
 %\usepackage[utf8]{inputenc}
@@ -11,6 +11,7 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage[polish]{babel}
+\usepackage[MeX]{polski}
 \usepackage[T1]{fontenc}
 
 
@@ -97,12 +98,12 @@
     }
  % musi być na końcu]
  
-\newcommand{\addimage}[4]{
+\newcommand{\addimage}[5]{
 \begin{figure}[H]
 \centering
 \includegraphics[#2]{#1}
-\caption{#3}
-\label{#4}
+\caption[#4]{#3}
+\label{#5}
 \end{figure}}
 
 
