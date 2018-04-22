@@ -432,8 +432,135 @@ W kontekście grafiki komputerowej poprawne wyliczenie reflektancji zwłaszcza w
 
 \addimage{chapters/ch1/img/gold_nk.png}{scale=0.30}{Współczynniki $\eta$ oraz $k$ dla złota dla optycznych długości fal $\lambda$. Wykres zaczerpnięty z~\cite{PBRT}}{Współczynniki $\eta$ oraz $k$ dla złota dla optycznych długości fal}{ch1:img:gold_nk}
 
-\subsection{Fotometria}
-\subsubsection{Modelowanie materiałów}
+\subsection{Podstawowe zagadnienia radiometrii}
+Radiometria zajmująca się ilościowym opisem promieniowania oraz wielkości fizycznych z nim związanych dostarcza odpowiednich narzędzi matematycznych stanowiących podstawę do wyprowadzenia algorytmów używanych w symulacjach propagacji światła w przestrzeni. W połączeniu z zasadami wynikającymi z optyki geometrycznej oraz zależnościami wyprowadzonymi w poprzednim podrozdziale pozwala stworzyć system śledzenia promieni, zdolny do generowania fotorealistycznych obrazów. 
+
+\begin{itemize}
+\item \textit{Strumień natężenia/moc promieniowania} $\Phi$ (ang. \textit{radiant flux/power}) jest miarą emitowanej/odbitej/transmitowanej/padającej energii promieniowania $Q$ w  jednostce czasu $t$ (mocy promieniowania) i zdefiniowana jest jako:
+\begin{equation}
+\Phi = \frac{\partial Q}{\partial t}
+\end{equation}
+\item \textit{Oświetlenie} (ang. \textit{irradiance}), czyli powierzchniowa gęstość mocy promieniowania padającego\footnote{Różnica w oznaczeniu oświetlenia $E$, względem dotychczasowego $I$ bierze się najprawdopodobniej z faktu, iż historycznie radiometria rozwijana była w oderwaniu od ścisłej teorii elektromagnetyzmu. W radiometrii symbolem $I$ oznaczana jest natomiast \textit{intensywność}~(ang. \textit{intensity}) definiowana jako miara strumienia natężenia przypadająca na jednostkowy kąt bryłowy $I = \frac{\partial\Phi}{\partial\omega}$~\cite{PBRT}.}
+\begin{equation}
+E = \frac{\partial\Phi}{\partial A} = \frac{\partial^2 Q}{\partial A \partial t}
+\end{equation}
+odpowiada, jak już wspomniano wcześniej, uśrednionej w czasie wartości wektora Poyntinga $\left\langle \vec{S} \right\rangle_T$, wiążącego ze sobą przestrzenne zależności pola elektrycznego $\vec{E}$ i magnetycznego $\vec{B}$. Wielkość ta pozwala wyjaśnić m. in. prawa odwrotności kwadratu odległości $\frac{1}{r^2}$ oraz Lamberta:
+\begin{itemize}
+\item Jeżeli przyjmiemy, że na rysunku \ref{ch1:img:Rays}~a) w punkcie $A$ znajduje się izotropowe punktowe źródło promieniowania o stałej mocy $\phi$ to oba fronty falowe (żółty (z) i pomarańczowy (p)) będą unosić ze sobą identyczną ilość energii, jednak z uwagi na różną odległość od źródła powierzchniowa gęstość energii będzie różna:
+\begin{align*}
+\Phi_{z} &= \Phi_{p}\\
+E_{z}S_{z} &= E_{p}S_{p}\\
+4\pi r_{z}^2E_{z} &= 4\pi r_{p}^2E_{p}\\
+\frac{E_z}{E_p} &= \frac{r_p^2}{r_z^2}.
+\end{align*}
+Skąd:
+\begin{equation}
+E\propto\frac{1}{r^2}
+\label{ch1:eq:InvSqrLaw}
+\end{equation}
+\item Kierunkowe źródło światła np. latarka ustawione w taki sposób, że promieniowanie pada prostopadle do powierzchni oświetla obszar $A_\perp$ o oświetleniu $E_1 \propto \frac{\Phi}{A_\perp}$. W miarę zwiększania kąta padania $\theta_i$ oświetlana powierzchnia zwiększa się $A = \frac{A_\perp}{\cos\theta_i}$ i $E_2 \propto \frac{\Phi}{A} = \frac{\Phi\cos\theta_i}{A_\perp}$. Na tej podstawie prawo Lamberta stanowi, że:
+\begin{equation}
+E\propto \cos\theta_i
+\label{ch1:eq:CosLambertLaw}
+\end{equation}
+\addimage{chapters/ch1/img/conic_section.png}{scale=0.35}{Zależność pola i kształtu oświetlanej powierzchni od kąta padania. Światło latarki padające na płaszczyznę tworzy na niej obszary, których brzegi są krzywymi stożkowymi. Dla padania prostopadłego $\theta_i = 0^\circ$ brzeg ten jest okręgiem, a powierzchnia nim objęta najmniejsza \cite{ConicSection}}{Zależność pola i kształtu oświetlanej powierzchni od kąta padania}{ch1:img:conic_section}
+\end{itemize}
+\item \textit{Radiancja} (ang. \textit{radiance}), która jest najważniejszą wielkością radiometryczną z punktu widzenia techniki śledzenia promieni jest zdefiniowana następująco:
+\begin{equation}
+L=\frac{\partial^2\Phi}{\partial A^\perp\partial\omega}=\frac{\partial^2\Phi}{\cos\theta_i\partial A\partial\omega},
+\label{ch1:eq:RadiometryIrradiance}
+\end{equation}
+gdzie $\partial A^\perp$ jest rzutem $\partial A$ na powierzchnię prostopadłą do $\vec{\omega}$. Wielkość ta wyraża ilość światła przypadającego na różniczkowy kąt bryłowy $\partial\omega$ i różniczkowy element powierzchni $\partial A$. Inaczej mówiąc jest to ilość światła rozchodząca się w wybranym kierunku wyznaczonym przez $\vec{\omega}$. Jeśli ośrodek jest nietłumiący, to radiancja pozostaje stała wzdłuż promieni. 
+
+W danym punkcie $\vec{p}$ na powierzchni obiektu istnieje zawsze pewien rozkład radiancji zależny od położenia oraz kierunku $L(\vec{p}, \vec{\omega})$. Rozkłady te definiuje się osobno dla \textit{radiancji padającej} $L_i(\vec{p}, \vec{\omega_i})$~(ang. \textit{incident radiance}) oraz \textit{radiancji wychodzącej} $L_o(\vec{p}, \vec{\omega_o})$~(ang. \textit{exitant radiance}) przy czym w ogólności:
+\begin{equation}
+L_i(\vec{p}, \vec{\omega})\neq L_o(\vec{p}, \vec{\omega}).
+\end{equation}
+Różniczkowe oświetlenie wynikające z radiancji padającej na $\vec{p}$ z definicji \eqref{ch1:eq:RadiometryIrradiance}:
+\begin{equation}
+\mathrm{d}E(\vec{p},\vec{\omega_i})=L_i(\vec{p}, \vec{\omega_i})\cos\theta_i\mathrm{d}\vec{\omega_i}.
+\end{equation}
+Z drugiej strony wiadomo, że wskutek tego oświetlenia pewna część energii zostanie rozproszona w kierunku $\vec{\omega_o}$. Założenie, że mamy do czynienia z ośrodkami o liniowej odpowiedzi prowadzi do wniosku, że różniczkowa radiancja wychodząca jest proporcjonalna do różniczkowego oświetlenia:
+\begin{equation}
+\mathrm{d}L_o(\vec{p}, \vec{\omega_o}) \propto \mathrm{d}E(\vec{p},\vec{\omega_i})
+\end{equation}
+Funkcja $f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i})$ będąca czynnikiem proporcjonalności między $\mathrm{d}L_o(\vec{p}, \vec{\omega_o})$ a $\mathrm{d}E(\vec{p},\vec{\omega_i})$ jest tzw. \textit{dwukierunkową funkcją rozkładu rozproszenia}~(ang. \textit{bidirectional scattering distribution function}, BSDF) i opisuje to, jak dużo padającego światła z kierunku $\vec{\omega_i}$ jest rozpraszane przez powierzchnię w punkcie $\vec{p}$ w kierunku $\vec{\omega_o}$:
+\begin{equation}
+f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i}) = \frac{\mathrm{d}L_o(\vec{p}, \vec{\omega_o})}{\mathrm{d}E(\vec{p},\vec{\omega_i})} = \frac{\mathrm{d}L_o(\vec{p}, \vec{\omega_o})}{L_i(\vec{p}, \vec{\omega_i})\cos\theta_i\mathrm{d}\vec{\omega_i}}.
+\label{ch1:eq:bsdfGeneral}
+\end{equation}
+\addimage{chapters/ch1/img/brdf2.png}{scale=0.45}{Funkcja dwukierunkowego rozkładu rozproszenia BSDF. Każdy kierunek $\vec{\omega}$ daje się opisać poprzez parę kątów $[\phi, \theta] \in [0, 2\pi] \times [0, \pi$] ($\phi$ określone jest przez rzut $\vec{\omega}$ na $\Pi$, zaś $\theta$ poprzez rzut $\vec{\omega}$ na normalną $\vec{n}$ w pukcie $\vec{p}$), co sprawia, że BSDF jest czterowymiarową funkcją par kierunków ($\vec{\omega_o}$, $\vec{\omega_i}$) opisującą, jaka część promieniowania padającego wzdłuż $\vec{\omega_i}$ jest rozpraszana w kierunku $\vec{\omega_o}$. Ilustracja wykonana na podstawie~\cite{PBRT}}{Funkcja dwukierunkowego rozkładu rozproszenia BSDF}{ch1:img:brdf}
+Aby BSDF uznać za realistyczne tzn. zgodne z podstawowymi zjawiskami fizycznymi musi ona spełniać kilka warunków:
+\begin{enumerate}
+\item Jest nieujemna dla dowolnej kombinacji parametrów.
+\item Nie może wprowadzać dodatkowej energii do układu:
+\begin{equation}
+\forall_{\vec{p}, \vec{\omega_o}}: \int_{\mathcal{S}^2}f_s(\vec{p}, \vec{\omega_o}, \vec{\omega'})\cos\theta'\mathrm{d}\vec{\omega'} \leq 1,
+\end{equation}
+gdzie całkowanie odbywa się po sferze wokół punktu $p$.
+\item Jeżeli BSDF opisuje procesy odbicia~(ang. \textit{bidirectional reflectance distribution function}, BRDF) musi ona spełniać relację odwracalność biegu promieni~(tzw. \textit{zasada Helmholtza}):
+\begin{equation}
+f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i}) = f_s(\vec{p}, \vec{\omega_i}, \vec{\omega_o})
+\end{equation}
+\end{enumerate}
+Równanie opisujące wpływ rozkładu radiancji padającej na rozkład po rozproszeniu jest kluczem do generowania realistycznej grafiki komputerowej i nazywane jest \textit{relacją rozpraszania}~(ang. \textit{scattering equation}):
+\begin{equation}
+L_o(\vec{p}, \vec{\omega_o}) = \int_{\mathcal{S}^2}f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i})L_i(\vec{p}, \vec{\omega_i})\cos\theta_i\mathrm{d}\vec{\omega_i}
+\label{ch1:eq:ScatteringEquation}
+\end{equation}
+\end{itemize}
+
+\subsection{Modelowanie materiałów}
+Wprowadzona w poprzednim podrozdziale funkcja BSDF~\eqref{ch1:eq:bsdfGeneral} jest tylko ogólnym wyrażeniem relacji między radiancją padającą a rozproszoną. Najogólniejsze podejście wymagałoby analizowania interakcji światła z atomami, na które ono pada. Podejście to jest na tyle nieefektywne, że przez ostatnie dekady powstały dziesiątki propozycji modeli opartych na różnych założeniach, a przez to dostosowanych do pewnego podzbioru występujących w rzeczywistości powierzchni. 
+
+Znakomita część modeli operuje zbiorem kilku intuicyjnych parametrów, które mogą odwoływać się np. do szorstkości, siły rozbłysku czy anizotropii występującej w materiale. Odpowiedni dobór tego typu modelu oraz jego parametrów w wielu przypadkach pozwala uzyskiwać przekonywujące rezultaty i to dlatego są one najchętniej i najczęściej wykorzystywane (są też atrakcyjne pod względem złożoności obliczeń). Po drugiej stronie znajdują się złożone modele teoretyczne i eksperymentalne BSDF, których celem jest perfekcyjne oddanie tego, w jaki sposób dany materiał się zachowuje. W przypadku modeli teoretycznych wiąże się to z koniecznością operowania wieloma parametrami, których znaczenie i wpływ na wygląd powierzchni może być niejasne. Eksperymentalne BSDF zaś wymagają pomiaru własności powierzchni z użyciem odpowiedniej aparatury - jest to czasochłonne a uzyskane BSDF nadają się tylko do wykorzystania z konkretnym materiałem~\cite{Montes12anoverview}.
+
+Wspomniano już wcześniej, że jednym z przypadków BSDF są BRDF, których zadaniem jest symulacja zjawisk odbicia. Odbicie w rzeczywistych materiałach jest wypadkową różnych mechanizmów (rysunek \ref{ch1:img:Reflection_terms}), których efekty można opisać jako:
+\begin{itemize}
+\item \textit{odbicie rozproszone}~(ang. \textit{diffuse}), które jest najlepiej dostrzegalne w przypadku powierzchni matowych i w najprostszym modelu Lamberta zakłada, że padająca radiancja jest odbijana jednakowo we wszystkich kierunkach,
+\item \textit{kierunkowe odbicie rozproszone}~(ang. \textit{glossy specular}) występuje, gdy powierzchnia materiału w skali mikro jest niemal idealnie gładka i odbicie zaczyna nabierać charakteru kierunkowego, w kierunku bazowym zadanym przez prawo odbicia modyfikowanym przez pewien rozkład kierunków. Szczególnym przypadkiem tego typu zachowania jest \textit{odbicie zwierciadlane}~(ang. \textit{perfect specular}), gdy powierzchnia jest idealnie gładka, a przez to kierunek bazowy jest jedynym kierunkiem, w którym odbicie następuje. 
+\end{itemize}
+\addimage{chapters/ch1/img/Reflection_terms.png}{scale=0.45}{Rodzaje odbicia od powierzchni. Odbicie rozproszone a), kierunkowe rozproszone b) i jego szczególny przypadek odbicie zwierciadlane c)}{Rodzaje odbicia od powierzchni}{ch1:img:Reflection_terms}
+Mając powyższe na uwadze w grafice komputerowej stosuje się zwykle wypadkową tych zjawisk używając sumy przyczynków do radiancji wychodzącej pochodzących od odbicia rozproszonego i kierunkowego:
+\begin{equation}
+L_o(\vec{p}, \vec{\omega_o}) = L_{o_d}(\vec{p}, \vec{\omega_o}) + L_{o_s}(\vec{p}, \vec{\omega_o})
+\end{equation}
+Istnieje jeszcze dodatkowy (stały dla danego materiału) składnik radiancji wychodzącej $L_{o_a}(\vec{p}, \vec{\omega_o})=L_{o_a}(\vec{p})$ a pochodzący od hipotetycznego bezkierunkowego źródła światła~(ang. \textit{ambient light}), którego celem jest zgrubne (zerowe) przybliżenie faktu, że światło, które nie oświetla bezpośrednio danego obiektu ulega wielokrotnym odbiciom w przestrzeni zanim dotrze do obserwatora. 
+\begin{align}
+L_o(\vec{p}, \vec{\omega_o}) &= L_{o_a}(\vec{p}) + L_{o_d}(\vec{p}, \vec{\omega_o}) + L_{o_s}(\vec{p}, \vec{\omega_o})\\
+L_{o_a}(\vec{p}) &= k_a(\vec{p})L_a,
+\end{align}
+gdzie:
+\begin{itemize}
+\item[] $L_a$ - stała wartość radiancji wynikającej z globalnego oświetlenia,
+\item[] $k_a(\vec{p}) \in [0, 1]$ - współczynnik dla danego materiału określający stopień jego interakcji ze światłem otoczenia.
+\end{itemize}
+Tak naprawdę jest to wyraz sztuczny, podyktowany wygodą oraz skróceniem czasu tworzenia grafiki. Śledzenie promieni, które u swoich podstaw zakłada rozważanie wielu ścieżek, po których światło może się poruszać automatycznie doświetla obiekty, które nie muszą leżeć w bezpośrednim zasięgu oddziaływania źródeł światła tworząc znacznie bardziej realistyczne rezultaty. 
+\addimage{chapters/ch1/img/glossy_reflection.jpg}{scale=0.07}{Przykład rozproszonego odbicia kierunkowego. Powierzchnia rzeki pod wpływem ruchu i wiatru staje się nierówna, w efekcie czego zaczyna ona odbijać otoczenie w taki sposób, że daje się wyróżnić pewien kierunek główny, wokół którego istnieje pewien rozkład wektorów odbicia. Im ten rozkład jest bardziej skupiony wokół jednego kierunku, tym lepiej dostrzegalne są szczegóły odbitego świata. Fotografia ze źródeł własnych (Annecy, Francja)}{Przykład rozproszonego odbicia kierunkowego}{ch1:img:glossy_reflection}
+\subsubsection{Model Lamberta światła rozproszonego}
+Podstawowy i najprostszy model oświetlenia powierzchni (pomijając interakcję z wirtualnym światłem otoczenia) stanowiący bazę dla innych bardziej złożonych algorytmów. Bazuje on na wspomnianym wcześniej prawie kosinusów Lamberta~\eqref{ch1:eq:CosLambertLaw} i sprawdza się dla powierzchni rozpraszających światło idealnie we wszystkich kierunkach. Dla takich materiałów odbita radiancja nie jest funkcją $\vec{\omega_o}$ tzn. $L_o(\vec{p}, \vec{\omega_o}) = L_o(\vec{p})$. Mając na uwadze wyprowadzone ogólne równanie rozpraszania~\eqref{ch1:eq:ScatteringEquation} jest to możliwe tylko wtedy, gdy sama funkcja BSDF nie zależy od $\vec{\omega_o}$ ani $\vec{\omega_i}$~(z uwagi na zasadę odwracalności w przypadku odbicia) zatem:
+\begin{equation}
+L_o(\vec{p}) = f_s(\vec{p})\int_{\mathcal{S}^2}L_i(\vec{p}, \vec{\omega_i})\cos\theta_i\mathrm{d}\vec{\omega_i}= f_s(\vec{p})E_i(\vec{p})
+\end{equation}
+Różniczkowy wyjściowy strumień natężenia musi być zatem równy:
+\begin{align}
+\mathrm{d}\Phi_o &= \mathrm{d}A\cdot\int_{\mathcal{S}^2}L_o(\vec{p})\cos\theta_o\mathrm{d}\vec{\omega_o}\nonumber\\
+&= \mathrm{d}A\cdot L_o(\vec{p})\int_{\mathcal{H}^2}\cos\theta_o\mathrm{d}\vec{\omega_o}\nonumber\\
+&= \mathrm{d}A\cdot L_o(\vec{p})\int_0^{2\pi}\mathrm{d}\phi\int_0^{\frac{\pi}{2}}\mathrm{d}\theta_o\cos\theta_o\sin\theta_o\nonumber\\
+&= \mathrm{d}A\cdot\pi L_o(\vec{p})\int_0^{\frac{\pi}{2}}\mathrm{d}\theta_o\sin 2\theta_o \nonumber\\
+&= \mathrm{d}A\cdot\pi L_o(\vec{p})\nonumber\\
+&= \mathrm{d}A\cdot\pi f_s(\vec{p})E_i(\vec{p})\nonumber\\
+&= \mathrm{d}\Phi_i\cdot\pi f_s(\vec{p})
+\end{align}
+Całkowanie po sferze wokół punktu $\vec{p}$ zostało zredukowane do całkowania po półsferze wyznaczonej przez kierunek normalny w $\vec{p}$. Niech $k_d(\vec{p}) = \frac{\mathrm{d}\Phi_o}{\mathrm{d}\Phi_i}$ będzie stopniem odbicia, wtedy:
+\begin{equation}
+f_s(\vec{p}) = \frac{k_d(\vec{p})}{\pi}
+\end{equation}
+
+\subsubsection{Model Oren-Nayar światła rozproszonego}
+\subsubsection{Model Phonga oraz Blinna-Phonga dla odbić kierunkowych}
+\subsubsection{Model Torrance-Sparrow dla odbić kierunkowych}
+
 Lambert, Phong, Oren-Nayar, Torrance-Sparrow
 \subsection{Bieg promieni świetlnych w przestrzeni}
 
