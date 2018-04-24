@@ -210,7 +210,7 @@ zwana wektorem Poyntinga pokazuje kierunek propagacji fali (a więc i kierunek p
 I\equiv\left\langle \vec{S} \right\rangle_T = c^2\epsilon_0\left\langle \vec{E}\times\vec{B} \right\rangle_T = \frac{c\epsilon_0}{2}E_{0}^2.
 \label{ch1:eq:Irradiance}
 \end{equation}
-Czynnik $\frac{1}{2}$ wynika z faktu uśredniania w czasie funkcji typu $\cos^2\alpha t$. {\color{red}Do irradiancji powrócimy w momencie omawiania podstawowych wielkości radiometrycznych.}
+Czynnik $\frac{1}{2}$ wynika z faktu uśredniania w czasie funkcji typu $\cos^2\alpha t$\footnote{Do irradiancji powrócimy w momencie omawiania podstawowych wielkości radiometrycznych.}.
 
 Wektor Poyntinga pozwala również na zdefiniowanie niezwykle użytecznej konstrukcji z punktu widzenia techniki śledzenia promieni, a wywodzącej się jeszcze z czasów starożytnych - promieni. Promień jest konstrukcją matematyczną (w ogólnym przypadku krzywą), którego kierunek odpowiada kierunkowi przepływu energii elektromagnetycznej. W przypadku ośrodków izotropowych (bez wyróżnionych kierunków) promień jest więc półprostą prostopadłą do frontu falowego.
 \addimage{chapters/ch1/img/rays.png}{scale=0.35}{Konstrukcja promieni ($\vec{u}$, $\vec{v}$) w przypadku a) źródła o symetrii sferycznej (np. punktowa żarówka) oraz b) fali płaskiej (np. światło słoneczne dochodzące do powierzchni Ziemi). W obu przypadkach promienie są półprostymi (ukazane schematycznie za pomocą wektorów) co zakłada brak anizotropii ośrodka}{Konstrukcja promieni}{ch1:img:Rays}
@@ -412,7 +412,9 @@ r_\parallel &= \frac{n_w\cos\theta_i - \cos\theta_t}{n_w\cos\theta_i + \cos\thet
 
 Obliczenie reflektancji dla obu przedstawionych polaryzacji prowadzi do wyniku:
 \begin{align}
+\label{ch1:eq:RPerp_general}
 R_\perp &= \frac{\left(\eta^2 + k^2\right)\cos^2\theta_t - 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_i}{\left(\eta^2 + k^2\right)\cos^2\theta_t + 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_i}\\
+\label{ch1:eq:RParallel_general}
 R_\parallel &= \frac{\left( \eta^2 + k^2 \right)\cos^2\theta_i - 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_t}{\left( \eta^2 + k^2 \right)\cos^2\theta_i + 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_t}
 \end{align}
 W przypadku dobrego przewodnika, tzn. takiego którego przewodność elektryczna $\sigma$ jest wysoka, prawdą jest jednak stwierdzenie, że fala przechodząca do takiego materiału będzie propagować się wzdłuż normalnej~($\theta_t = 0$) do granicy dwóch ośrodków i to niezależnie od wartości kąta padania $\theta_i$. Stąd powyższe równania ulegną uproszczeniu (tym razem zaznaczając bezpośrednio zależność częstotliwościową):
@@ -552,18 +554,90 @@ Różniczkowy wyjściowy strumień natężenia musi być zatem równy:
 &= \mathrm{d}A\cdot\pi f_s(\vec{p})E_i(\vec{p})\nonumber\\
 &= \mathrm{d}\Phi_i\cdot\pi f_s(\vec{p})
 \end{align}
-Całkowanie po sferze wokół punktu $\vec{p}$ zostało zredukowane do całkowania po półsferze wyznaczonej przez kierunek normalny w $\vec{p}$. Niech $k_d(\vec{p}) = \frac{\mathrm{d}\Phi_o}{\mathrm{d}\Phi_i}$ będzie stopniem odbicia, wtedy:
+Całkowanie po sferze wokół punktu $\vec{p}$ zostało zredukowane do całkowania po półsferze wyznaczonej przez kierunek normalny w $\vec{p}$. Niech $k_d(\vec{p}) = \frac{\mathrm{d}\Phi_o}{\mathrm{d}\Phi_i}$ będzie stopniem odbicia, wtedy poszukiwana funkcja BSDF~(BRDF) będzie następująca:
 \begin{equation}
 f_s(\vec{p}) = \frac{k_d(\vec{p})}{\pi}
+\label{ch1:eq:LambertBRDF}
 \end{equation}
 
-\subsubsection{Model Oren-Nayar światła rozproszonego}
+\subsubsection{Model Orena-Nayara światła rozproszonego}
+Zdecydowana większość rzeczywistych powierzchni, mimo że wydaje się być gładka w rzeczywistości nie jest. Badanie powierzchni na przykład mikroskopią sił atomowych pokazuje, że  materiał w rzeczywistości posiada pewne mikronierówności - te zaś wpływają na to jak dany materiał jako całość rozprasza światło.
+\addimage{chapters/ch1/img/afm_surface_topology.png}{scale=0.3}{Topologia rzeczywistej powierzchni uzyskana techniką mikroskopii sił atomowych~(AFM)~\cite{SurfaceImaging}}{Topologia rzeczywistej powierzchni}{ch1:img:afm_surface_topology}
+Dość powszechnym podejściem w symulacjach jest przybliżenie powierzchni materiału poprzez tzw. \textit{mikrościanki}~(ang. \textit{microfacet}). Gdy oświetlona zostaje różniczkowa powierzchnia $\mathrm{d}A$ można przyjąć, że określona liczba mikrościanek bierze udział w procesie rozpraszania. Wynik rozpraszania zależeć będzie od wkładu poszczególnych mikrościanek w ten proces oraz funkcji określającej ich rozkład przestrzenny.
+\addimage{chapters/ch1/img/Small_roughness.png}{scale=0.4}{Przybliżenie powierzchni w modelu mikrościanek dla niskiej szorstkości. Wektory normalne do poszczególnych mikrościanek $\vec{n_f}$ niewiele się różnią od wypadkowego wektora normalnego $\vec{n}$}{Przybliżenie powierzchni w modelu mikrościanek dla niskiej szorstkości}{ch1:img:Small_roughness}
+\addimage{chapters/ch1/img/Big_roughness.png}{scale=0.4}{Przybliżenie powierzchni w modelu mikrościanek dla wysokiej szorstkości. Widoczna jest znaczna wariancja kierunku wektora normalnego $\vec{n_f}$ względem wypadkowego $\vec{n}$}{Przybliżenie powierzchni w modelu mikrościanek dla wysokiej szorstkości}{ch1:img:Big_roughness}
+
+Jednym z takich modeli, które bierze pod uwagę fizyczne właściwości powierzchni i modeluje światło rozproszone jest model wprowadzony i potwierdzony eksperymentalnie przez Orena i Nayara~\cite{Oren94generalizationof}\cite{Nayar95visualappearance}. Twórcy przybliżyli powierzchnię poprzez zbiór V-kształtnych i symetrycznych rowków, które indywidualnie zachowują się tak jak to wynika z modelu Lamberta, o rozkładzie orientacji opisanym poprzez rozkład Gaussa. Stopień szorstkości kontrolowany jest parametrem $\sigma^2$ będący wariancją rozkładu. Pełen model charakteryzuje się dość wysoką złożonością obliczeniową, jednak jego Twórcy na podstawie analizy wpływu poszczególnych składowych na wynik końcowy zaproponowali uproszczoną i stosowaną w praktyce formę:
+\begin{align}
+f_s(\vec{p}, \vec{\omega_i}(\phi_i, \theta_i), \vec{\omega_o}(\phi_o, \theta_o)) &= \frac{k_d(\vec{p})}{\pi}(A + B\max(0, \cos(\phi_i - \phi_o))\sin\alpha\tan\beta)\\
+A &= 1 - \frac{\sigma^2}{2(\sigma^2 + 0.33)}\\
+B &= \frac{0.45\sigma^2}{\sigma^2 + 0.09}\\
+\alpha &= \max(\theta_i, \theta_o)\\
+\beta &= \min(\theta_i, \theta_o)
+\end{align}
+Mimo, że jest model Orena-Nayara jest klasyfikowany jako model fizyczny jest on kontrolowany pojedynczym parametrem $\sigma^2$, co jest jego dużą zaletą. Co więcej, gdy $\sigma^2 = 0$ (czyli powierzchnia jest idealnie gładka) funkcja BSDF przechodzi naturalnie w model Lamberta~($A=1$, $B=0$).
+
 \subsubsection{Model Phonga oraz Blinna-Phonga dla odbić kierunkowych}
-\subsubsection{Model Torrance-Sparrow dla odbić kierunkowych}
+Powierzchnie niematowe charakteryzują się pewnym stopniem połysku zależnym od stopnia jej szorstkości. Tak na przykład o powierzchni kontaktowej większości radiatorów można powiedzieć, że rozpraszają światło niejednakowo w różnych kierunkach i zależnym od pewnego kąta $\alpha$. Jednak, gdy zostaną one poddane polerowaniu, mikronierówności powierzchni zaczną być niwelowane~(szorstkość się zmniejszy) aż do uzyskania powierzchni, która zachowuje się niemal jak lustro $\theta_r \simeq \theta_i$. Phong Bui-Thong~\cite{Phong} opracował model dla takich zjawisk oparty na założeniu, że odbicie kierunkowe jest maksymalne, gdy $\alpha = 0^\circ$ i jest szybko gasnącą funkcją tego kąta. Sam kąt mierzony jest między $\vec{\omega_o}$ a odbiciem zwierciadlanym kierunku w stronę źródła światła $\vec{l}$ względem normalnej w danym punkcie $\vec{n}$~(rysunek~\ref{ch1:img:Specular_reflection}), a za funkcję modelującą zasięg rozbłysku przyjął zależność $\cos^e\alpha$~(rysunek~\ref{ch1:img:cose}):
+\begin{equation}
+\acute{f_s}(\vec{p}, \vec{l}, \vec{\omega_o}; e) = k_s(\vec{p})\cos^e\left(\angle(\vec{l^\prime}, \vec{\omega_o})\right),
+\label{ch1:eq:PhongBRDFNonnormalized}
+\end{equation}
+gdzie $k_s(\vec{p})\in[0, 1]$ stanowi współczynnik odbicia w danym punkcie $\vec{p}$.
+\addimage{chapters/ch1/img/Specular_reflection.png}{scale=0.5}{Modelowanie odbić w modelu Phonga. Kąt $\alpha$ definiowany jest jako kąt między między $\vec{\omega_o}$ a odbiciem względem normalnej $\vec{n}$ do powierzchni kierunku do źródła światła $\vec{l}$ }{Modelowanie odbić w modelu Phonga}{ch1:img:Specular_reflection}
+Parametr $e$ występujący we wzorze~\eqref{ch1:eq:PhongBRDFNonnormalized} decyduje o skupieniu odbitej wiązki wokół $\vec{l^\prime}$ i dla powierzchni lustrzanej $e\rightarrow\infty$.
+\addimage{chapters/ch1/img/cose.png}{scale=0.5}{Zależność funkcji rozbłysku od parametru $e$. Im większa wartość $e$ tym rozkład jest staje się mocniej skupiony wokół $\alpha=0^\circ$}{Zależność funkcji rozbłysku od parametru $e$}{ch1:img:cose}
 
-Lambert, Phong, Oren-Nayar, Torrance-Sparrow
-\subsection{Bieg promieni świetlnych w przestrzeni}
+Pewną modyfikacją oryginalnego modelu Phonga jest model Blinna-Phonga, który został wprowadzony w celu uniknięcia obliczania bezpośrednio odbitego wektora $\vec{l^\prime}$~\cite{BlinnPhong} i zaproponował użycie wektora połówkowego~(rysunek~\ref{ch1:img:Specular_reflection_blinn}):
+\begin{equation}
+\vec{h} = \frac{\vec{l} + \vec{\omega_o}}{|\vec{l} + \vec{\omega_o}|}.
+\end{equation}
+Wektor ten jest następnie używany w celu określenia kąta $\alpha = \angle(\vec{\omega_o}, \vec{h})$ i użyty w ten sam sposób jak w oryginalnym modelu Phonga~\eqref{ch1:eq:PhongBRDFNonnormalized}.
 
-\section{Metoda Monte Carlo}
-\subsection{Przykłady zastosowań}
-symulacja rozmycia obrazu, źródła światła skończonych rozmiarów, lśniące powierzchnie
+\addimage{chapters/ch1/img/Specular_reflection_blinn.png}{scale=0.5}{Modelowanie odbić w modelu Blinna-Phonga; Kąt $\alpha$ definiowany jest jako kąt między między $\vec{h} = \frac{\vec{l} + \vec{\omega_o}}{|\vec{l} + \vec{\omega_o}|}$ a odbiciem względem normalnej $\vec{n}$ do powierzchni kierunku do źródła światła $\vec{l}$ }{Modelowanie odbić w modelu Blinna-Phonga}{ch1:img:Specular_reflection_blinn}
+
+Oba te modele mają tę wadę, że są modelami empirycznymi tzn. nie biorą pod uwagę rzeczywistych zjawisk zachodzących w materiale. Co więcej ani model Phonga ani Blinna-Phonga nie spełnia podstawowych założeń związanych z funkcją BRDF~\cite{Lewis94makingshaders} tzn. łamana jest zasada odwracalności oraz zachowania energii. Aby temu zaradzić należy dokonać normalizacji:
+
+\begin{align}
+1 &= c\int_{\mathcal{S}^2}\acute{f_s}(\cos\alpha; e)\cos\alpha\mathrm{d}\vec{\omega}\nonumber\\
+&= c\int_0^{2\pi}\mathrm{d}\alpha\int_0^{\frac{\pi}{2}}\mathrm{d}\alpha\cos^{e + 1}\alpha\sin\alpha\nonumber\\
+&= 2\pi c\int_0^1 u^{e + 1}\mathrm{d}u\nonumber\\
+&= \frac{2\pi c}{e + 2}
+\end{align}
+Stąd uwzględniając stałą normalizacyjną $c$ właściwa postać BSDF dla modelu Phonga i Blinna-Phonga ma postać:
+\begin{equation}
+f_s(\vec{p}, \alpha; e) = k_s(\vec{p})\frac{e + 2}{2\pi}\cos^e\alpha
+\label{ch1:eq:PhongBRDFNormalized}
+\end{equation}
+
+Okazuje się jednak, że sama normalizacja nie jest wystarczająca~\cite{Lafortune94usingthe}. Skoro odbicie w rzeczywistych materiałach jest wypadkową różnych mechanizmów odbicia to aby zasada zachowania energii była spełniona, należy nałożyć ograniczenie na sumę współczynników:
+\begin{equation}
+k_d(\vec{p}) + k_s(\vec{p}) \leq 1
+\end{equation}
+
+\subsubsection{Model Torrance'a-Sparrowa dla odbić kierunkowych}
+Tak samo jak w przypadku światła rozproszonego poprawne modelowanie odbicia kierunkowego wymaga rozważenia powierzchni jako zbioru pewnej liczby mikrościanek o orientacji zależnej od funkcji rozkładu. Model, który przybliża powierzchnię poprzez zbiór odbijających lustrzanie mikrościanek znany jest jako model Torrance'a-Sparrowa i uznawany jest za najbardziej kompleksowy model wśród tych, które pomijają własności anizotropowe powierzchni~\cite{Meister98investigationon}\cite{PBRT}. Model ten zakłada, że wyłącznie mikrościanki o orientacji zgodnej z wektorem połówkowym $\vec{\omega_h} = \frac{\vec{\omega_o} + \vec{\omega_i}}{|\vec{\omega_o} + \vec{\omega_i}|}$ uczestniczą w odbiciu zwierciadlanym.
+\addimage{chapters/ch1/img/Torrance_Sparrow.png}{scale=0.55}{Geometria odbicia w modelu Torrance'a-Sparrowa.}{Geometria odbicia w modelu Torrance'a-Sparrowa}{ch1:img:Torrance_Sparrow}
+Jego ogólna funkcja BSDF (BRDF) jest zapisywana jako:
+\begin{equation}
+f_s(\vec{p}, \vec{\omega_i}(\phi_i, \theta_i), \vec{\omega_o}(\phi_o, \theta_o)) = \frac{D(\omega_h)G(\omega_o, \omega_i)F_r(\omega_o)}{4\cos\theta_o\cos\theta_i}.
+\label{ch1:eq:TorranceSparrowFull}
+\end{equation}
+Składa się na nią:
+\begin{itemize}
+\item[] $D(\vec{\omega_h})$ - czynnik rozkładu orientacji mikrościanek, który w różnych publikacjach można być opisany poprzez różne funkcje rozkładu (np. Gaussa). W tym konkretnym przypadku posługiwać będziemy się rozkładem Blinna znanym już z dyskusji o modelu Phonga~\eqref{ch1:eq:PhongBRDFNormalized}:
+\begin{equation}
+D(\vec{\omega_h}) = c(\vec{\omega_h}\cdot\vec{n})^e = \frac{e + 2}{2\pi}(\vec{\omega_h}\cdot\vec{n})^e
+\end{equation}
+\item[] $G(\vec{\omega_o}, \vec{\omega_i})$ - czynnik geometryczny, który wyraża to jaka część światła dla danej pary kierunków $(\vec{\omega_o}, \vec{\omega_i})$ nie zostaje osłonięta w wyniku relacji między wzajemnym położeniem mikrościanek. Efekt ten obliczany jest używając wyrażenia:
+\begin{equation}
+G(\vec{\omega_o}, \vec{\omega_i}) = \min\left\lbrace 1, \frac{2(\vec{n}\cdot\vec{\omega_h})(\vec{n}\cdot\vec{\omega_o})}{\vec{\omega_o}\cdot\vec{\omega_h}}, \frac{2(\vec{n}\cdot\vec{\omega_h})(\vec{n}\cdot\vec{\omega_i})}{\vec{\omega_o}\cdot\vec{\omega_h}} \right\rbrace
+\end{equation}
+\item[] $F_r(\vec{\omega_o})$ - współczynnik odbicia obliczony zgodnie z wyprowadzonymi wzorami na współczynniki Fresnela \eqref{ch1:eq:RPerp_general}-\eqref{ch1:eq:RParallel_conductor}~(kąt padania $\theta_h$ mierzony jest między $\vec{\omega_i}$ a $\vec{\omega_h}$). 
+\end{itemize}
+\section{Podsumowanie}
+Celem tego rozdziału było pokazanie podstawowych praw fizyki, rządzących transportem światła pomiędzy obiektami. Szczególnie istotne były wszystkie kroki potrzebne do wyprowadzenia wzorów Fresnela na reflektancję i transmitancję wraz z relacją rozpraszania, która wiąże ze sobą radiancję wychodzącą z radiancją padającą poprzez funkcję BSDF. Zaprezentowane zostały również przykładowe funkcje BSDF dla modelowania odbić od powierzchni (czyli funkcje BRDF). Temat funkcji BSDF jest znacznie bardziej obszerny niż zaprezentowano tutaj i więcej informacji na ten temat można znaleźć w cytowanej bibliografii. Niemniej jednak opisane zagadnienia korespondują z tym, co udało się zrealizować w części projektowej.
+
+%\section{Metoda Monte Carlo}
+%\subsection{Przykłady zastosowań}
+%symulacja rozmycia obrazu, źródła światła skończonych rozmiarów, lśniące powierzchnie
