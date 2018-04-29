@@ -9,8 +9,8 @@ Proces rasteryzacji w ogólnym rozumieniu polega na transformacji grafiki wektor
 \begin{itemize}
 \item macierz przekształceń 4x4 we współrzędnych obserwatora~(kamery) $\mathbf{MV_i}$ zawierającą informację o jego położeniu, skali, obrocie oraz ewentualnych deformacjach~(np. pochyleniu),
 \item współrzędne tekstury,
-\item normalna - o ile w przypadku pojedynczego punktu podawanie normalnej nie ma sensu, o tyle trzeba pamiętać, iż punkty te definiują odpowiednie płaszczyzny obiektów; przy takiej interpretacji można mówić o normalnej do płaszczyzny w danym jej wierzchołku, co wykorzystywane jest chociażby w procesie wizualnego bądź też rzeczywistego~(wykorzystując teselację\footnote{Technika dzielenia siatki obiektu na mniejsze, dzięki czemu obiekt wydaje się gładszy i dokładniejszy niż ten, który pierwotnie został przekazany do renderowania.}) wygładzania obiektów,
-\item parametry dotyczące {\color{red}materiału\footnote{ODWOŁANIE???}}, z którego zbudowany jest opisywany obiekt,
+\item normalna - o ile w przypadku pojedynczego punktu podawanie normalnej nie ma sensu, o tyle trzeba pamiętać, iż punkty te definiują odpowiednie płaszczyzny obiektów; przy takiej interpretacji można mówić o normalnej do płaszczyzny w danym jej wierzchołku, co wykorzystywane jest chociażby w procesie wizualnego bądź też rzeczywistego~(wykorzystując teselację\footnote{Technika dzielenia siatki trójkątów obiektu na mniejsze, dzięki czemu obiekt wydaje się gładszy i dokładniejszy niż ten, który pierwotnie został przekazany do renderowania.}) wygładzania obiektów,
+\item parametry dotyczące charakterystyki materiału, z którego zbudowany jest opisywany obiekt\footnote{Materiał opisuje sposób zachowania powierzchni w odpowiedzi na interakcję ze światłem. Temat ten zostanie rozwinięty w podrozdziale dotyczącym radiometrii. },
 \item i innych\footnote{W dobie programowalnych potoków przetwarzania programiści oraz artyści ograniczeni są właściwie tylko przez własną wyobraźnię. Dla przykładu animacja pomiędzy dwoma położeniami punktów będzie wymagać nie tylko aktualnej macierzy przekształceń, ale również drugiej odpowiadającej następnej klatce kluczowej animacji macierzy wraz z parametrem mówiącym o położeniu pomiędzy tymi dwoma stanami.}.
 \end{itemize}
 Atrybuty te są następnie wykorzystywane podczas kolejnych etapów tworzenia obrazu.
@@ -20,7 +20,7 @@ Ważnym globalnym parametrem jest również \textit{macierz projekcji} $\mathbf{
 \item odległości od obserwatora bliskiej \textit{n} oraz dalekiej \textit{f} płaszczyzny odcięcia,
 \item kąta rozwarcia stożka widoczności $\mathrm{\alpha}$
 \end{itemize}
-\addimage{chapters/ch1/img/perspective_projection2.png}{scale=0.33}{Rzut z góry na stożek widoczności z pozycji obserwatora $O$, tylko obiekty wewnątrz stożka opisanego parametrami $n$, $f$, oraz $\alpha$ zostaną narysowane całkowicie, te na brzegach będą wygenerowane częściowo}{Rzut z góry na stożek widoczności z pozycji obserwatora $O$}{ch1:img:perspectiveMatrix}
+\addimage{chapters/ch1/img/perspective_projection2.png}{scale=0.33}{Rzut z góry na stożek widoczności z pozycji obserwatora $O$. Tylko obiekty wewnątrz stożka opisanego parametrami $n$, $f$, oraz $\alpha$ zostaną narysowane całkowicie, te na brzegach będą wygenerowane częściowo}{Rzut z góry na stożek widoczności z pozycji obserwatora $O$}{ch1:img:perspectiveMatrix}
 i wygląda następująco:
 \begin{equation}
 P = 
@@ -32,47 +32,47 @@ S & 0 & 0 & 0 \\
 \end{bmatrix},\qquad \mathrm{gdzie\ }S = \frac{1}{\tan\frac{\alpha}{2}}.
 \end{equation}
 Wierzchołki przekształcone zgodnie z $\vec{v_{i}}^{'} = \mathbf{P}\cdot\mathbf{MV_i}\cdot \vec{v_i}$ i składające się na jeden prymityw geometryczny są na kolejnych etapach łączone ze sobą tworząc powierzchnię zajmującą określone pozycje pikseli na obrazie. 
-\addimage{chapters/ch1/img/triangle.png}{scale=0.8}{Trójkąt po rasteryzacji; siatka kwadratów odpowiada niepodzielnej siatce pikseli obrazu, wierzchołki zostały oznaczone czerwonymi punktami i połączone ze sobą, z uwagi na fakt, iż piksele są elementami dyskretnymi, odpowiednie algorytmy muszą zdecydować czy dana płaszczyzna w odpowiednio dużym stopniu zajmuje miejsce odpowiadające danemu pikselowi, w efekcie powstają postrzępione granice obiektów, dla pikseli znajdujących się wewnątrz (niebieskie) należy dokonać interpolacji atrybutów}{Trójkąt po rasteryzacj}{ch1:img:triangleRaster}
+\addimage{chapters/ch1/img/triangle.png}{scale=0.8}{Trójkąt po rasteryzacji. Siatka kwadratów odpowiada niepodzielnej siatce pikseli obrazu, wierzchołki zostały oznaczone czerwonymi punktami i połączone ze sobą, z uwagi na fakt, iż piksele są elementami dyskretnymi, odpowiednie algorytmy muszą zdecydować czy dana płaszczyzna w odpowiednio dużym stopniu zajmuje miejsce odpowiadające danemu pikselowi, w efekcie powstają postrzępione granice obiektów. Dla pikseli znajdujących się wewnątrz (niebieskie) należy dokonać interpolacji atrybutów}{Trójkąt po rasteryzacj}{ch1:img:triangleRaster}
 Jako, że dokładne wartości atrybutów znane są tylko i wyłącznie dla wierzchołków to wewnątrz powierzchni atrybuty te muszą być interpolowane by móc na kolejnych etapach nadać pikselom pożądany kolor zgodny z przyjętym oświetleniem, materiałem i teksturą. Tak obliczone piksele, o ile znajdują się dalej w przestrzeni obserwatora, mogą zostać jeszcze nadpisane przez kolejne powierzchnie. Wykorzystywany jest do tego \textit{bufor głębokości}~(ang. \textit{z-buffer}), którego rozmiar w pikselach odpowiada generowanemu obrazowi, zaś same piksele przechowują informację o aktualnie najbliższym położeniu. Jeśli aktualnie przetwarzany obiekt~(płaszczyzna) dla danego piksela znajduje się bliżej niż wszystko, co do tej pory zostało wyrenderowane, wartość bufora głębokości zostaje nadpisana w tym punkcie przez nową wartość głębi, a piksel obrazu zostanie obliczony na nowo - tym razem biorąc pod uwagę własności tego nowego obiektu. W przeciwnym razie, gdy piksel odpowiadający nowemu obiektowi jest dalej w przestrzeni widoku zostaje on odrzucony. Dzięki czemu nie są przeprowadzane dalsze obliczenia dla elementów, których obserwator i tak nie jest w stanie dostrzec, oszczędzając przy tym czas procesora.
 
 Powyższy opis procesu rasteryzacji, mimo iż znacznie uproszczony w stosunku do wykorzystywanych obecnie potoków przetwarzania~\cite{OPENGL_SUPERBIBLE}, zawiera sedno całej operacji i pozwala wyróżnić kilka jego najważniejszych cech.
 \begin{enumerate}
 \item Jest to proces, który idealnie nadaje się do zrównoleglenia obliczeń, dzięki temu, że każda płaszczyzna jest rysowana w sposób niezależny (synchronizacja danych jest wymagana jednak na etapie dostępu do bufora głębokości). Ma to swoje odzwierciedlenie w fakcie, że producenci procesorów graficznych od dawna produkują urządzenia zawierające setki a nawet tysiące równoległych jednostek przetwarzających~\cite{NV_Hardware}\cite{AMD_Hardware}.
 \item Z uwagi na fakt, iż określenie pozycji w przestrzeni widoku wymaga znajomości pierwotnego położenia wierzchołka $\vec{v_i}$ to sam obiekt, którego część ten wierzchołek reprezentuje, musi zostać przybliżony przez sieć wierzchołków. Wynika z tego, iż chcąc uzyskać lepsze odwzorowanie krzywizny powierzchni należy dysponować gęstszą siatką punktów.
-\addimage{chapters/ch1/img/spheres.png}{scale=0.5}{Triangulacja obiektów na przykładzie sfery - im więcej podziałów powierzchni tym gładszy obiekt jednak czas renderowania dłuższy}{ch1:img:shpereTriangulation}{Triangulacja sfery}
+\addimage{chapters/ch1/img/spheres.png}{scale=0.5}{Triangulacja obiektów na przykładzie sfery - im więcej podziałów powierzchni tym gładszy obiekt, jednak czas renderowania dłuższy}{ch1:img:shpereTriangulation}{Triangulacja sfery}
 \item Procesor przetwarzający aktualną powierzchnię nie wie nic o pozostałych obiektach w scenie. W szczególności nie wie nic o tym czy dana powierzchnia na drodze do źródła światła jest przesłaniana przez inne płaszczyzny czy też nie. W zwiąku z tym cienie generowane są kilkuetapowo. Najprostszą metodą jest wygenerowanie tzw. \textit{mapy cieni} (ang. \textit{shadow map}) z pozycji źródła światła. Jest to tekstura, która określa punkty, do których dociera oświetlenie. Wartości jej pikseli odpowiadają natomiast odległości najbliższych źródłu światła obiektów. W kolejnej fazie scena jest już renderowana normalnie z pozycji obserwatora i do określenia miejsc ocienionych używa się informacji z tekstury wygenerowanej wcześniej. Nie jest to jednak proces idealny. Z uwagi na fakt, że mapa cieni jest teksturą jej rozdzielczość w znaczący sposób wpływa na jakość obrazu - im większa tym granice między cieniem a powierzchnią oświetloną są mniej postrzępione. Dodatkowo stosuje się filtrację mapy cieni dla uzyskania gładszych przejść~\cite{GPU_GEMS3_PCF}. Podobne trudności sprawia również uzyskanie poprawnych (tzn. zgodnych z perspektywą i zasadami fizyki) odbić np. na powierzchniach lustrzanych czy wodzie. W prostych przypadkach, takich jak płaskie lustro, można sobie z tym poradzić poprzez narysowanie na płaszczyźnie lustrzanego odbicia sceny względem tej płaszczyzny. Jednak w większości wypadków powierzchnie odbijające posiadają skomplikowane kształty, przez co autorzy skłaniają się ku wykorzystaniu technik przybliżonych bądź też bazujących na śledzeniu promieni~\cite{GPU_GEMS3_MIRRORS}.
 \end{enumerate}
 W związku z przytoczonymi powyżej faktami można stwierdzić, iż rasteryzacja jest stosunkowo szybkim procesem (o ile obliczenia są prowadzone równolegle) opartym o informacje lokalne (dla danej powierzchni określonej przez zbiór jej wierzchołków), która musi posiłkować się różnymi (nieraz bardzo wyrafinowanymi) technikami przybliżonymi w celu stworzenia iluzji realizmu świata przedstawionego.
 
 \subsection{Śledzenie promieni - zagadnienie widoczności}
-Generowanie grafiki metodą śledzenia promieni jest oparte na fizycznych podstawach, które mówią o tym, w jaki sposób światło (fotony) propaguje się w przestrzeni. Cały proces polega na rekonstrukcji ścieżki, po której poruszają się fotony zanim trafią do obserwatora tworząc obraz~(Rys.~\ref{ch1:img:rayTracingView}) a pierwsze wzmianki o jego wykorzystaniu sięgają roku 1968~\cite{APPEL1968}.
+Generowanie grafiki metodą śledzenia promieni jest oparte na fizycznych podstawach, które mówią o tym, w jaki sposób światło (fotony) propaguje się w przestrzeni. Cały proces polega na rekonstrukcji ścieżki, po której poruszają się fotony zanim trafią do obserwatora tworząc obraz~(rysunek~\ref{ch1:img:rayTracingView}), a pierwsze wzmianki o jego wykorzystaniu sięgają roku 1968~\cite{APPEL1968}.
 
 Z pozycji obserwatora $\vec{O}$ w kierunku obserwacji $\vec{d_i}$ ($|\vec{d_i}| = 1$) wysyłane są promienie $\vec{r_i} = \vec{O} + t\vec{d_i}$, których celem jest znalezienie najbliższych obserwatorowi przeszkód~(obiektów) na drodze propagacji - są to tak zwane \textit{promienie pierwotne}~(ang. \textit{primary rays}). Aby znaleźć taki obiekt należy znać postać równania $f(x, y, z) = 0$ dla każdego obiektu znajdującego się w świecie i umieć je rozwiązać dla tego promienia. Rozwiązaniem takiego równania jest najmniejsza nieujemna wartość $t$ mówiąca o tym, jak daleko od obserwatora w zadanym kierunku $\vec{d_i}$ znajduje się obiekt (ujemne wartości $t$ odpowiadają sytuacji, gdy obiekt znajduje się za obserwatorem). Jeśli aktualna wartość $t$ jest mniejsza niż znane do tej pory $t_{min}$ następuje aktualizacja odległości $t_{min} = t$ oraz wielkości $p$ wskazującej na napotkany obiekt. W najprostszym przypadku (tzn. bez wykorzystania struktur akcelerujących typu siatki i drzewa~\cite{VINKLER_PHD}) znalezienie najbliższego obiektu $p$ dla promienia $\vec{r_i}$ wymaga sprawdzenia wszystkich obiektów w scenie.
-\addimage{chapters/ch1/img/ray_tracing_view.png}{scale=0.15}{Wsteczna rekonstrukcja propagacji fotonów za pomocą śledzenia promieni~(rzut 2D z boku); Z pozycji obserwatora $\vec{O}$ wysyłane są promienie sprawdzające ścieżkę, po której poruszały się fotony zanim trafiły do obserwatora; Promień $\vec{r_1}$ w punkcie $A$ przecina sferę o środku $\vec{P}$, następnie zostaje odbity $\vec{r_r}$ względem normalnej $\vec{n}$ w punkcie $A$ oraz załamany $\vec{r_t}$ (promienie wtórne); relacja pomiędzy kątami $\angle AOG$ i $\angle LAB$ wpływa na kolor obiektu w danym punkcie zgodnie z przyjętym modelem materiału oraz parametrami opisującymi źródło światła $L$; W przypadku promienia $\vec{r_2}$ przecinającego płaszczyznę wyznaczoną przez punkty $D$ oraz $E$ w punkcie $F$, promień cienia $\overrightarrow{FL}$ napotyka na swojej drodze przeszkodę w postaci sfery, w skutek czego punkt ten będzie znajdował się w cieniu (tak jak wszystkie punkty położone na odcinku $|DE|$)}{Wsteczna rekonstrukcja propagacji fotonów za pomocą śledzenia promieni}{ch1:img:rayTracingView}
-Znalezienie punktu $X$, w którym nastąpiło przecięcie promienia $r_i$ z najbliższym mu obiektem pozwala na obliczenie m. in. normalnej $\vec{n}$ w danym punkcie. Jest to kluczowy parametr, wykorzystywany w obliczeniu tak koloru wynikającego z położenia względem źródła światła jak i do stworzenia promieni, których początek $\vec{O'}$ znajduje się w $X$ zaś kierunek odpowiada promieniu (tzw. \textit{promienie wtórne} ang. \textit{secondary rays}):
+\addimage{chapters/ch1/img/ray_tracing_view.png}{scale=0.45}{Wsteczna rekonstrukcja propagacji fotonów za pomocą śledzenia promieni~(rzut 2D z boku). Z pozycji obserwatora $\vec{O}$ wysyłane są promienie sprawdzające ścieżkę, po której poruszały się fotony zanim trafiły do obserwatora. Promień $\vec{r_1}$ w punkcie $A$ przecina sferę o środku $\vec{P}$, następnie zostaje odbity $\vec{r_r}$ względem normalnej $\vec{n}$ w punkcie $A$ oraz załamany $\vec{r_t}$ (promienie wtórne). Relacja pomiędzy kątami $\angle AOG$ i $\angle LAB$ wpływa na kolor obiektu w danym punkcie zgodnie z przyjętym modelem materiału oraz parametrami opisującymi źródło światła $L$. W przypadku promienia $\vec{r_2}$ przecinającego płaszczyznę wyznaczoną przez punkty $D$ oraz $E$ w punkcie $F$, promień cienia $\overrightarrow{FL}$ napotyka na swojej drodze przeszkodę w postaci sfery, w skutek czego punkt ten będzie znajdował się w cieniu (tak jak wszystkie punkty położone na odcinku $|DE|$)}{Wsteczna rekonstrukcja propagacji fotonów za pomocą śledzenia promieni}{ch1:img:rayTracingView}
+Znalezienie punktu $\vec{X}$, w którym nastąpiło przecięcie promienia $\vec{r_i}$ z najbliższym mu obiektem pozwala na obliczenie m. in. normalnej $\vec{n}$ w danym punkcie. Jest to kluczowy parametr, wykorzystywany w obliczeniu tak koloru wynikającego z położenia względem źródła światła jak i do stworzenia promieni, których początek $\vec{O'}$ znajduje się w $\vec{X}$ zaś kierunek odpowiada promieniu (tzw. \textit{promienie wtórne} ang. \textit{secondary rays}):
 \begin{itemize}
 \item odbitemu,
 \item załamanemu,
-\item tzw. \textit{promieniu cienia} (ang. \textit{shadow ray}) sprawdzającemu czy na drodze między badanym punktem $X$ a źródłem światła nie znajduje się inny obiekt go przysłaniający (rzucający cień na $X$).
+\item tzw. \textit{promieniu cienia} (ang. \textit{shadow ray}) sprawdzającemu czy na drodze między badanym punktem $\vec{X}$ a źródłem światła nie znajduje się inny obiekt go przysłaniający (rzucający cień na $\vec{X}$).
 \end{itemize}
-Dla tych promieni również sprawdzane są testy przecięcia ze wszystkimi obiektami, a efekty tych obliczeń wpływają na wynikowy kolor piksela, który powiązany jest z konkretnym promieniem pierwotnym $\vec{r_i}$. W szczególności promienie wtórne mogą rozdzielać się na kolejne wtórne promienie (mówi się o tzw. głębokości śledzenia promieni). Im większa głębokość śledzenia promieni tym większy stopień realizmu jak również złożoność obliczeń.
+Dla tych promieni również sprawdzane są testy przecięcia ze wszystkimi obiektami, a efekty tych obliczeń wpływają na wynikowy kolor piksela, który powiązany jest z konkretnym promieniem pierwotnym $\vec{r_i}$. W szczególności promienie wtórne mogą rozdzielać się na kolejne wtórne promienie (mówi się o tzw. \textit{głębokości śledzenia promieni}, która mówi o tym, ile generacji promieni wtórnych jest rozpatrywanych w procesie renderowania obrazu). Im większa głębokość śledzenia promieni tym większy stopień realizmu jak również złożoność obliczeń.
 
 Przedstawiona powyżej technika choć bardzo prosta w swoich założeniach pozwala generować złożone wizualizacje o wysokim poziomie realizmu. Co bardzo istotne w kontekście porównania do rasteryzacji, generowanie cieni czy odbić nie wymaga specjalnego traktowania i tworzenia dodatkowych algorytmów - wynika to wprost z samej idei śledzenia promieni. Wymagana jest jedynie znajomość położenia obserwatora $\vec{O}$ oraz listy obiektów, których przecięcie z promieniem jesteśmy w stanie obliczyć w sposób analityczny. Wynika stąd również fakt, że nie jest wymagane by obiekty sceny były opisywane poprzez listę ich wierzchołków. Dla przykładu sferę można wyrenderować jako zbiór odpowiedniej ilości trójkątów jak i rozwiązując analityczne równanie $(\vec{r_i} - \vec{o})^2 = R^2$, gdzie $\vec{o}$ i $R$ to odpowiednio położenie środka oraz promień sfery. W pierwszym przypadku algorytm musi sprawdzić przecięcia ze wszystkimi trójkątami, podczas gdy w drugim wystarczy tylko rozwiązać równanie kwadratowe, które ponadto poda niemal dokładne rozwiązanie\footnote{Należy mieć na uwadze, iż komputerowe obliczenia zmiennoprzecinkowe charakteryzują się skończoną dokładnością.}. 
 
 W porównaniu do rasteryzacji, śledzenie promieni charakteryzuje się też innym pochodzeniem równoległości obliczeń. W tym przypadku żaden promień (pierwotny, wtórne, cieni), który uczestniczy w tworzeniu koloru danego piksela nie wpływa na kolor innych pikseli. Stąd idealny system śledzący promienie byłby w stanie przetwarzać wszystkie piksele jednocześnie.
 
-Niestety największą wadą a przez to czynnikiem niepozwalającym na adaptację śledzenia promieni w znacznej części przypadków jest powolność. Każdy stworzony promień w scenie musi na podstawie dostarczonej listy obiektów sam określić, który (jeśli którykolwiek) z nich znajduje się najbliżej na jego drodze. Jest to zupełne przeciwieństwo sytuacji, która ma miejsce podczas rasteryzacji, gdzie pozycja na mapie pikseli każdego obiektu geometrycznego z listy jest określana tylko raz dla danego obrazu. Stąd koniecznym jest stosowanie struktur akcelerujących{\color{red}ODNOSNIKI!!!}, pozwalających na szybkie stwierdzenie czy i jaki podzbiór wszystkich obiektów znajduje się w danym kierunku propagacji promienia $\vec{r_i}$.
+Niestety największą wadą, a przez to czynnikiem niepozwalającym na adaptację śledzenia promieni w znacznej części przypadków jest złożoność obliczeniowa. Każdy stworzony promień w scenie musi na podstawie dostarczonej listy obiektów sam określić, który (jeśli którykolwiek) z nich znajduje się najbliżej na jego drodze. Jest to zupełne przeciwieństwo sytuacji, która ma miejsce podczas rasteryzacji, gdzie pozycja na mapie pikseli każdego obiektu geometrycznego z listy jest określana tylko raz dla danego obrazu. Stąd koniecznym jest stosowanie struktur akcelerujących~\cite{FASTTREE}\cite{FAST_KDTREES}, pozwalających na szybkie stwierdzenie czy i jaki podzbiór wszystkich obiektów znajduje się w danym kierunku propagacji promienia $\vec{r_i}$.
 \newline
 
-Śledzenie promieni jest zatem techniką pozwalającą w sposób oparty na podstawowych zasadach fizyki tworzyć fotorealistyczne obrazy bez konieczności stosowania wyrafinowanych sztuczek będących jedynie przybliżeniem rzeczywistości a koniecznych podczas rasteryzacji. Niestety z przyczyn wyjaśnionych wcześniej nie jest ona stosowana tam, gdzie wymagane jest tworzenie płynnych animacji w czasie rzeczywistym. Celem tej pracy jest natomiast próba zaadresowania tego problemu oraz stworzenie prototypowego systemu pozwalającego na wykonywanie takich symulacji. 
+Śledzenie promieni jest zatem techniką pozwalającą w sposób oparty na podstawowych zasadach fizyki tworzyć fotorealistyczne obrazy bez konieczności stosowania wyrafinowanych sztuczek będących jedynie przybliżeniem rzeczywistości~(a koniecznych podczas rasteryzacji). Niestety z przyczyn wyjaśnionych wcześniej nie jest ona stosowana tam, gdzie wymagane jest tworzenie płynnych animacji w czasie rzeczywistym. Celem tej pracy jest natomiast próba zaadresowania tego problemu oraz stworzenie prototypowego systemu pozwalającego na wykonywanie takich symulacji. 
 \section{Fizyczne podstawy generowania realistycznych obrazów}
-Aby zrozumieć sens fizyczny algorytmów używanych podczas śledzenia promieni warto na początku przypomnieć prawa, jakie żądzą zachowaniem się fal elektromagnetycznych i które stanowią bazę do wyprowadzenia wielu użytecznych zależności. Te zostały zebrane w XIX wieku przez Jamesa Clerka Maxwella i udowodniły ponad wszelką wątpliwość, iż światło (rozumiane jako pełne spektrum - nie tylko zakres widzialny) jest falą wynikającą ze współzależności pomiędzy polem elektrycznym $\vec{E}$ i magnetycznym $\vec{B}$. 
+Aby zrozumieć sens fizyczny algorytmów używanych podczas śledzenia promieni warto na początku przypomnieć prawa, jakie żądzą zachowaniem się fal elektromagnetycznych, i które stanowią bazę do wyprowadzenia wielu użytecznych zależności. Te zostały zebrane w XIX wieku przez Jamesa Clerka Maxwella i udowodniły ponad wszelką wątpliwość, iż światło (rozumiane jako pełne spektrum - nie tylko zakres widzialny) jest falą wynikającą ze współzależności pomiędzy polem elektrycznym $\vec{E}$ i magnetycznym $\vec{B}$. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAXWELL
 \begin{itemize}
 \item Prawo indukcji Faraday'a - zmienny w czasie strumień pola magnetycznego indukuje pole elektryczne związane z tym strumieniem:
 \begin{equation}
-\oint_C\vec{E}\cdot \mathrm{d}\vec{l} = -\iint_A\frac{\partial\vec{B}}{\partial t}\cdot \mathrm{d}\vec{S}
+\oint_C\vec{E}\cdot \mathrm{d}\vec{l} = -\iint_A\frac{\partial\vec{B}}{\partial t}\cdot \mathrm{d}\vec{S}.
 \label{ch1:eq:Faraday}
 \end{equation}
 W szczególności, gdy zamknięty obwód przewodzący zostanie umieszczony w zmiennym strumieniu magnetycznym na jego końcach pojawi się siła elektromotoryczna (SEM).
@@ -81,7 +81,7 @@ W szczególności, gdy zamknięty obwód przewodzący zostanie umieszczony w zmi
 \oiint_A \vec{E}\cdot\mathrm{d}\vec{S} = \frac{1}{\epsilon}\iiint_V\rho\mathrm{d}V,
 \label{ch1:eq:Gauss}
 \end{equation}
-gdzie $\epsilon$ jest bezwzględną przenikalnością elektryczną ośrodka, z $\rho$ gęstością ładunku.
+gdzie $\epsilon$ jest bezwzględną przenikalnością elektryczną ośrodka, a $\rho$ gęstością ładunku.
 \item Uogólnione prawo Ampere'a - płynący prąd powoduje wytworzenie związanego z nim pola magnetycznego:
 \begin{equation}
 \oint_C\vec{B}\cdot\mathrm{d}\vec{l} = \mu\iint_A\left(\vec{J} + \epsilon\frac{\partial\vec{E}}{\partial t} \right)\cdot\mathrm{d}\vec{S}, 
@@ -98,12 +98,12 @@ Powyższe wzory można również przedstawić w innej postaci, która jak się o
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% GAUSS & STOKES THEOREMS
 \begin{equation}
-\oint_C\vec{F}\cdot\mathrm{d}\vec{l} = \iint_A\nabla\times\vec{F}\cdot\mathrm{d}\vec{S}
+\oint_C\vec{F}\cdot\mathrm{d}\vec{l} = \iint_A\nabla\times\vec{F}\cdot\mathrm{d}\vec{S},
 \label{ch1:eq:StokesTheorem}
 \end{equation}
 
 \begin{equation}
-\oiint_A\vec{F}\cdot\mathrm{d}\vec{S} = \iiint_V\nabla\cdot\vec{F}\mathrm{d}V
+\oiint_A\vec{F}\cdot\mathrm{d}\vec{S} = \iiint_V\nabla\cdot\vec{F}\mathrm{d}V.
 \label{ch1:eq:GaussTheorem}
 \end{equation}
 
@@ -112,44 +112,44 @@ Znalezienie podobieństw pomiędzy powyższymi a odpowiednimi równaniami \eqref
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAXWELL DIFF
 
 \begin{equation}
-\nabla\times\vec{E} = -\frac{\partial\vec{B}}{\partial t}
+\nabla\times\vec{E} = -\frac{\partial\vec{B}}{\partial t},
 \label{ch1:eq:FaradayDiff}
 \end{equation}
 
 \begin{equation}
-\nabla\cdot\vec{E} = \frac{\rho}{\epsilon}
+\nabla\cdot\vec{E} = \frac{\rho}{\epsilon},
 \label{ch1:eq:GaussDiff}
 \end{equation}
 
 \begin{equation}
-\nabla\times\vec{B} = \mu\left(\vec{J} + \epsilon\frac{\partial\vec{E}}{\partial t} \right)
+\nabla\times\vec{B} = \mu\left(\vec{J} + \epsilon\frac{\partial\vec{E}}{\partial t} \right),
 \label{ch1:eq:AmpereDiff}
 \end{equation}
 
 \begin{equation}
-\nabla\cdot\vec{B} = 0
+\nabla\cdot\vec{B} = 0.
 \label{ch1:eq:GaussBDiff}
 \end{equation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAXWELL FREE SPACE DIFF
 W najprostszym przypadku tj. wolnej przestrzeni równania te ulegają uproszczeniu do postaci ($\mu_0$ i $\epsilon_0$ są odpowiednio przenikalnością magnetyczną i elektryczną próżni):
 \begin{equation}
-\nabla\times\vec{E} = -\frac{\partial\vec{B}}{\partial t}
+\nabla\times\vec{E} = -\frac{\partial\vec{B}}{\partial t},
 \label{ch1:eq:FaradayDiffFree}
 \end{equation}
 
 \begin{equation}
-\nabla\cdot\vec{E} = 0
+\nabla\cdot\vec{E} = 0,
 \label{ch1:eq:GaussDiffFree}
 \end{equation}
 
 \begin{equation}
-\nabla\times\vec{B} = \mu_0\epsilon_0\frac{\partial\vec{E}}{\partial t}
+\nabla\times\vec{B} = \mu_0\epsilon_0\frac{\partial\vec{E}}{\partial t},
 \label{ch1:eq:AmpereDiffFree}
 \end{equation}
 
 \begin{equation}
-\nabla\cdot\vec{B} = 0
+\nabla\cdot\vec{B} = 0.
 \label{ch1:eq:GaussBDiffFree}
 \end{equation}
 
@@ -158,19 +158,19 @@ W najprostszym przypadku tj. wolnej przestrzeni równania te ulegają uproszczen
 Rozwiązań można poszukiwać stosując lewostronnie operator rotacji ($\nabla\times$) po obu stronach równości dla \eqref{ch1:eq:FaradayDiffFree} oraz \eqref{ch1:eq:AmpereDiffFree} z wykorzystaniem poniższej tożsamości:
 
 \begin{equation}
-\nabla\times\nabla\times = \nabla(\nabla\cdot) - \nabla^2 = \nabla(\nabla\cdot) - \triangle
+\nabla\times\nabla\times = \nabla(\nabla\cdot) - \nabla^2 = \nabla(\nabla\cdot) - \triangle,
 \label{ch1:eq:rotrot}
 \end{equation}
 
 \begin{align}
-\nabla\times\left( \nabla\times\vec{E} \right) &= \nabla\times\left( -\frac{\partial\vec{B}}{\partial t} \right)\nonumber\\
-\nabla(\nabla\cdot\vec{E}) - \triangle\vec{E} &= -\frac{\partial}{\partial t}\left(\nabla\times\vec{B} \right)\nonumber\\
-\triangle\vec{E} &= \mu_0\epsilon_0\frac{\partial^2\vec{E}}{\partial t^2}
+\nabla\times\left( \nabla\times\vec{E} \right) &= \nabla\times\left( -\frac{\partial\vec{B}}{\partial t} \right),\nonumber\\
+\nabla(\nabla\cdot\vec{E}) - \triangle\vec{E} &= -\frac{\partial}{\partial t}\left(\nabla\times\vec{B} \right),\nonumber\\
+\triangle\vec{E} &= \mu_0\epsilon_0\frac{\partial^2\vec{E}}{\partial t^2}.
 \label{ch1:eq:ElectricWaveEq}
 \end{align}
 Postępując analogicznie:
 \begin{equation}
-\triangle\vec{B} = \mu_0\epsilon_0\frac{\partial^2\vec{B}}{\partial t^2}
+\triangle\vec{B} = \mu_0\epsilon_0\frac{\partial^2\vec{B}}{\partial t^2}.
 \label{ch1:eq:MagneticWaveEq}
 \end{equation}
 W wyniku otrzymano równania na zachowanie się pól $\vec{E}$ i $\vec{B}$ w postaci równania falowego d'Alemberta:
@@ -185,24 +185,24 @@ v = c = \frac{1}{\sqrt{\mu_0\epsilon_0}}
 \end{equation}
 jest szybkością, z jaką porusza się fala ($c$ - prędkość światła w próżni).
 
-Na podstawie równań \eqref{ch1:eq:FaradayDiffFree}-\eqref{ch1:eq:GaussBDiffFree} można wykazać, że $\vec{E}$ oraz $\vec{B}$ są do siebie wzajemnie prostopadłe a iloczyn wektorowy $\vec{E}\times\vec{B} = \vec{s}$ wskazuje kierunek propagacji fali. Fala elektromagnetyczna propagująca się w wolnej przestrzeni jest falą poprzeczną. 
+Na podstawie równań \eqref{ch1:eq:FaradayDiffFree}-\eqref{ch1:eq:GaussBDiffFree} można wykazać, że $\vec{E}$ oraz $\vec{B}$ są do siebie wzajemnie prostopadłe, a iloczyn wektorowy $\vec{E}\times\vec{B} = \vec{s}$ wskazuje kierunek propagacji fali - fala elektromagnetyczna propagująca się w wolnej przestrzeni jest falą poprzeczną. 
 
 Zakładając, że płaska harmoniczna fala elektromagnetyczna o częstości $\omega$ porusza się w taki sposób, iż jej propagacja zachodzi w kierunku dodatnim osi $x$ laboratoryjnego układu współrzędnych, a pole elektryczne w tym układzie posiada tylko składową $y$, rozwiązanie równania \eqref{ch1:eq:ElectricWaveEq} prowadzi do:
 \begin{equation}
-E_y(x,t)=E_{0_y}\cos\left[\omega\left(t - \frac{x}{c} \right) + \phi \right]
+E_y(x,t)=E_{0_y}\cos\left[\omega\left(t - \frac{x}{c} \right) + \phi \right].
 \label{ch1:eq:EyRealRefraction}
 \end{equation}
 Szukając zależności dla pola magnetycznego $\vec{B}$ tej fali można posłużyć się \eqref{ch1:eq:FaradayDiffFree}:
 \begin{equation}
-\frac{\partial E_y}{\partial x} = -\frac{\partial B_z}{\partial t} \rightarrow B_z = -\int\frac{\partial E_y}{\partial x}\mathrm{d}t
+\frac{\partial E_y}{\partial x} = -\frac{\partial B_z}{\partial t} \rightarrow B_z = -\int\frac{\partial E_y}{\partial x}\mathrm{d}t,
 \end{equation}
 \begin{equation}
-B_z(x,t)=\frac{1}{c}E_{0_y}\cos\left[\omega\left(t - \frac{x}{c} \right) + \phi \right]=\frac{1}{c}E_y(x,t)
+B_z(x,t)=\frac{1}{c}E_{0_y}\cos\left[\omega\left(t - \frac{x}{c} \right) + \phi \right]=\frac{1}{c}E_y(x,t).
 \label{ch1:eq:EBRelationship}
 \end{equation}
 W efekcie uzyskane wyrażenie pokazuje, że we wszystkich punktach przestrzeni pola elektryczne $\vec{E}$ oraz magnetyczne $\vec{B}$ posiadają identyczną zależność czasową - są zatem w fazie. Co więcej można pokazać, że następująca funkcja wektorowa:
 \begin{equation}
-\vec{S} = \frac{1}{\mu_0}\vec{E}\times\vec{B} = c^2\epsilon_0\vec{E}\times\vec{B}
+\vec{S} = \frac{1}{\mu_0}\vec{E}\times\vec{B} = c^2\epsilon_0\vec{E}\times\vec{B},
 \label{ch1:eq:PoyntingVector}
 \end{equation}
 zwana wektorem Poyntinga pokazuje kierunek propagacji fali (a więc i kierunek przepływu energii fali elektromagnetycznej) zaś jego wartość $|\vec{S}|$ opisuje chwilową powierzchniową gęstość mocy promieniowania. W wielu praktycznych zastosowaniach stosuje się uśrednioną w czasie wartość tej wielkości, która nazywana jest \textit{oświetleniem}~(ang. \textit{irradiance}):
@@ -216,13 +216,13 @@ Wektor Poyntinga pozwala również na zdefiniowanie niezwykle użytecznej konstr
 \addimage{chapters/ch1/img/rays.png}{scale=0.35}{Konstrukcja promieni ($\vec{u}$, $\vec{v}$) w przypadku a) źródła o symetrii sferycznej (np. punktowa żarówka) oraz b) fali płaskiej (np. światło słoneczne dochodzące do powierzchni Ziemi). W obu przypadkach promienie są półprostymi (ukazane schematycznie za pomocą wektorów) co zakłada brak anizotropii ośrodka}{Konstrukcja promieni}{ch1:img:Rays}
 
 Koncepcja promieni wraz z zasadą Huygensa, która mówi, iż każdy punkt ośrodka, do którego dochodzi zaburzenie (fala) staje się nowym źródłem elementarnej fali kulistej o takiej samej częstotliwości co zaburzenie pierwotne, pozwala w łatwy sposób zobrazować prawa odbicia i załamania\footnote{Zasada Huygensa została podana na podstawie serii wnikliwych doświadczeń i nie mówi nic o rzeczywistych zjawiskach rozpraszania zachodzących w ośrodku na poziomie mikroskopowym. Szeroka dyskusja zjawisk rozpraszania zawarta jest w~\cite{Hecht}. }. Ważnym spostrzeżeniem jest również fakt, iż promienie padające, odbite i załamane na granicy dwóch ośrodków są współpłaszczyznowe. Dzięki czemu graficzne przedstawienie tych praw ulega uproszczeniu do dwóch wymiarów przestrzennych.
-\addimage{chapters/ch1/img/reflRefrHuygens.png}{scale=0.15}{Konstrukcja fali odbitej i załamanej na bazie zasady Huygensa}{Konstrukcja fali odbitej i załamanej na bazie zasady Huygensa}{ch1:img:reflRefrHuygens}
-Na rysunku \ref{ch1:img:reflRefrHuygens} przedstawiona została procedura powstawania fali odbitej i załamanej w myśl zasady Huygensa. Padający front falowy opisany przez promień $\vec{u}$ pada na płaszczyznę $\Pi$ przechodzącą przez punkty $A$ i $B$ pod kątem $\epsilon$ mierzonym względem kierunku normalnego $\vec{n}$ do tej powierzchni. W momencie gdy fala padająca dociera do $C$ punkt tej przestrzeni staje się źródłem nowej elementarnej fali, z tą różnicą, że szybkość jej propagacji zależy od ośrodka w którym się ona propaguje. W przypadku zilustrowanym powyżej szybkość propagacji w ośrodku 'nad' granicą wyznaczoną przez płaszczyznę $\Pi$ jest większa niż 'pod' nią ($v_i > v_t$). W związku z tym zanim front falowy fali padającej dotrze do punktu $E$ fronty falowe powstałe w $C$ przemieszczą się na inną odległość. Jako, że fala padająca i odbita poruszają się w tym samym ośrodku ich prędkość propagacji jest identyczna ($v_i = v_r$) przez co $|DE| = |CH|$ (inaczej mówiąc promień frontu falowego po czasie $\Delta t$ potrzebnym na dotarcie fali z $D$ do punktu $E$ jest równy $|DE|$). Styczne poprowadzone do obu półsfer z punktu $E$ definiują nowe fronty falowe po odbiciu i załamaniu fali od powierzchni $\Pi$, takie że:
+\addimage{chapters/ch1/img/reflRefrHuygens.png}{scale=0.45}{Konstrukcja fali odbitej i załamanej na bazie zasady Huygensa}{Konstrukcja fali odbitej i załamanej na bazie zasady Huygensa}{ch1:img:reflRefrHuygens}
+Na rysunku \ref{ch1:img:reflRefrHuygens} przedstawiona została procedura powstawania fali odbitej i załamanej w myśl zasady Huygensa. Padający front falowy opisany przez promień $\vec{u}$ pada na płaszczyznę $\Pi$ przechodzącą przez punkty $A$ i $C$ pod kątem $\epsilon$ mierzonym względem kierunku normalnego $\vec{n}$ do tej powierzchni. W momencie gdy fala padająca dociera do $C$ punkt tej przestrzeni staje się źródłem nowej elementarnej fali, z tą różnicą, że szybkość jej propagacji zależy od ośrodka w którym się ona propaguje. W przypadku zilustrowanym powyżej szybkość propagacji w ośrodku 'nad' granicą wyznaczoną przez płaszczyznę $\Pi$ jest większa niż 'pod' nią ($v_i > v_t$). W związku z tym zanim front falowy fali padającej dotrze do punktu $E$ fronty falowe powstałe w $C$ przemieszczą się na inną odległość. Jako, że fala padająca i odbita poruszają się w tym samym ośrodku ich prędkość propagacji jest identyczna ($v_i = v_r$) przez co $|DE| = |CH|$ (inaczej mówiąc odległość frontu falowego od $C$ po czasie $\Delta t$ potrzebnym na dotarcie fali z $D$ do punktu $E$ jest równy $|DE|$). Styczne poprowadzone do obu półsfer z punktu $E$ definiują nowe fronty falowe po odbiciu i załamaniu fali od powierzchni $\Pi$, takie że:
 \begin{align}
 \label{ch1:eq:ReflectionLaw}
 \varepsilon &= \gamma,\\
 \label{ch1:eq:RefractionLaw}
-\frac{\sin\varepsilon}{\sin\delta} &= \frac{v_i}{v_t},
+\frac{\sin\varepsilon}{\sin\delta} &= \frac{v_i}{v_t} = \frac{n_t}{n_i} = n_w,
 \end{align}
 gdzie:
 \begin{itemize}
@@ -230,7 +230,7 @@ gdzie:
 \item[] $\gamma$ - kąt zawarty między $\vec{n}$ a $\vec{v}$ (kąt odbicia),
 \item[] $\delta$ - kąt zawarty między $\vec{n}$ a $\vec{w}$ (kąt załamania).
 \end{itemize}
-O ile prawo odbicia \eqref{ch1:eq:ReflectionLaw} jest intuicyjnym prawem, znanym z prostych rozważań mechaniki klasycznej (np. odbicie nieobracającego się krążka hokejowego od bandy) o tyle prawo załamania \eqref{ch1:eq:RefractionLaw} zawiera w sobie element, którego zachowanie nie wynika wprost z równań Maxwella a z mikroskopowych własności materii. 
+O ile prawo odbicia \eqref{ch1:eq:ReflectionLaw} jest intuicyjnym prawem, znanym z prostych rozważań mechaniki klasycznej (np. odbicie nieobracającego się krążka hokejowego od bandy), o tyle prawo załamania \eqref{ch1:eq:RefractionLaw} zawiera w sobie element $n_w = \frac{n_t}{n_i}$, znany jako względny współczynnik załamania równy ilorazowi współczynnika załamania w nowym materiale $n_t$ i współczynnika załamania materiału, z którego pada promieniowanie $n_i$, którego zachowanie nie wynika wprost z równań Maxwella a z mikroskopowych własności obu materiałów. 
 
 Jeżeli dielektryk znajdzie się w polu oddziaływania elektrycznego, w wyniku oddziaływania z tym polem nastąpi redystrybucja ładunku w materiale. Pole to dokona separacji ładunków (para ładunków dodatniego i ujemnego tworzy dipol elektryczny) przez co pole wewnątrz materiału będzie inne niż wymuszające. Powstały moment dipolowy na jednostkę objętości (przy założeniu liniowości i izotropii ośrodka) jest zdefiniowany jako:
 \begin{equation}
@@ -268,7 +268,7 @@ n = \frac{c}{v} = \sqrt{\frac{\epsilon\mu}{\epsilon_0\mu_0}} = \sqrt{\epsilon_r\
 \end{equation}
 W efekcie:
 \begin{equation}
-n^2(\omega) = 1 + \frac{Nq_e^2}{\epsilon_0m_e}\frac{1}{\omega_0^2 - \omega^2}
+n^2(\omega) = 1 + \frac{Nq_e^2}{\epsilon_0m_e}\frac{1}{\omega_0^2 - \omega^2}.
 \label{ch1:eq:RefractionCoeff}
 \end{equation}
 
@@ -285,7 +285,7 @@ Na rysunku \ref{ch1:img:nOmega} widać, że tak długo, jak częstotliwość $\o
 {\color{red}Do Rewizji na podstawie Feynmanna:}
 Na koniec tego podrozdziału, warto również powiedzieć, że w każdym przypadku $n(\omega)$ z równania \eqref{ch1:eq:GeneralRefractionCoeff} można przedstawić w postaci:
 \begin{equation}
-n(\omega) = \eta(\omega) - ik(\omega),\qquad k(\omega)\in\mathbb{R_+}\cup\left\lbrace 0 \right\rbrace
+n(\omega) = \eta(\omega) - ik(\omega),\qquad k(\omega)\in\mathbb{R_+}\cup\left\lbrace 0 \right\rbrace,
 \label{ch1:eq:SimplifiedRefractionCoeff}
 \end{equation}
 gdzie:
@@ -311,158 +311,158 @@ Na granicy dwóch ośrodków w każdym punkcie, do którego dociera fala elektro
 \addimage{chapters/ch1/img/continuity_fin.png}{scale=0.4}{Ciągłość pola elektrycznego na granicy ośrodków. Wymiar w kierunku normalnym do $\Pi$ $\partial h$ obu obiektów, względem których następuje całkowanie jest nieskończenie mały w szczególności w porównaniu z $|\mathrm{d}\vec{l}|$}{Ciągłość pola elektrycznego na granicy ośrodków}{ch1:img:Continuity}
 Rysunek~\ref{ch1:img:Continuity} ilustruje sposób, w jaki można wyprowadzić warunki ciągłości dla pola elektrycznego $\vec{E}$ na granicy między ośrodkiem 1 a 2 wyznaczonym przez powierzchnię $\Pi$. Z prawa Gaussa dla elektryczności \eqref{ch1:eq:Gauss} przy założeniu braku swobodnego ładunku powierzchniowego na $\Pi$:
 \begin{align}
-\oiint_A \epsilon\vec{E}\cdot\mathrm{d}\vec{S} &= 0 \nonumber\\
-\epsilon_1E_1^\perp - \epsilon_2E_2^\perp &= 0 
+\oiint_A \epsilon\vec{E}\cdot\mathrm{d}\vec{S} &= 0, \nonumber\\
+\epsilon_1E_1^\perp - \epsilon_2E_2^\perp &= 0.
 \end{align}
 Wykorzystanie prawa Faraday'a \eqref{ch1:eq:Faraday} daje kolejny warunek (wysokość pętli $\partial h \ll |\mathrm{d}\vec{l}|$):
 \begin{align}
-\oint_C\vec{E}\cdot \mathrm{d}\vec{l} &= -\iint_A\frac{\partial\vec{B}}{\partial t}\cdot \mathrm{d}\vec{S}\nonumber\\
-E_1^\parallel|\mathrm{d}\vec{l}| - E_{1\rightarrow 2}^\perp\partial h - E_2^\parallel|\mathrm{d}\vec{l}| + E_{2\rightarrow 1}^\perp\partial h &= \frac{\partial\vec{B}}{\partial t}|\mathrm{d}\vec{l}|\partial h\nonumber\\
+\oint_C\vec{E}\cdot \mathrm{d}\vec{l} &= -\iint_A\frac{\partial\vec{B}}{\partial t}\cdot \mathrm{d}\vec{S},\nonumber\\
+E_1^\parallel|\mathrm{d}\vec{l}| - E_{1\rightarrow 2}^\perp\partial h - E_2^\parallel|\mathrm{d}\vec{l}| + E_{2\rightarrow 1}^\perp\partial h &= \frac{\partial\vec{B}}{\partial t}|\mathrm{d}\vec{l}|\partial h,\nonumber\\
 \label{ch1:eq:EParallelContinuity}
-E_1^\parallel - E_2^\parallel &= 0
+E_1^\parallel - E_2^\parallel &= 0.
 \end{align}
 Analogiczne działania z wykorzystaniem dwóch pozostałych praw Maxwella prowadzą do zależności:
 \begin{align}
-B_1^\perp - B_2^\perp &= 0\\
+B_1^\perp - B_2^\perp &= 0,\\
 \label{ch1:eq:BParallelContinuity}
-\mu_1^{-1}B_1^\parallel - \mu_2^{-1}B_2^\parallel &= 0
+\mu_1^{-1}B_1^\parallel - \mu_2^{-1}B_2^\parallel &= 0.
 \end{align}
 \subsubsection{Wzory Fresnela}
 Rozważmy falę elektromagnetyczną padającą na granicę między dwoma ośrodkami $\Pi$ spolaryzowaną w taki sposób, że jej wektor pola elektrycznego $\vec{E}$ oscyluje w kierunku prostopadłym do płaszczyzny padania (polaryzacja poprzeczna).
-\addimage{chapters/ch1/img/fresnel_setup_TE.png}{scale=0.35}{Konfiguracja pola elektrycznego $\vec{E}$ i magnetycznego $\vec{B}$ w przypadku polaryzacji poprzecznej na granicy dwóch ośrodków wyznaczonej przez powierzchnię~$\Pi$. Fala elektromagnetyczna pada na $\Pi$ w punkcie $O$ i w tym punkcie rozważane są odpowiednie wielkości jednakże ze względu na czytelność ilustracji odpowiednie wektory zostały rozsunięte }{Konfiguracja pola elektrycznego $\vec{E}$ i magnetycznego $\vec{B}$ w przypadku polaryzacji poprzecznej na granicy dwóch ośrodków}{ch1:img:fresnel_setup_TE}
+\addimage{chapters/ch1/img/fresnel_setup_TE.png}{scale=0.35}{Konfiguracja pola elektrycznego $\vec{E}$ i magnetycznego $\vec{B}$ w przypadku polaryzacji poprzecznej na granicy dwóch ośrodków wyznaczonej przez powierzchnię~$\Pi$. Fala elektromagnetyczna pada na $\Pi$ w punkcie $O$ i w tym punkcie rozważane są odpowiednie wielkości, jednakże ze względu na czytelność ilustracji odpowiednie wektory zostały rozsunięte}{Konfiguracja pola elektrycznego $\vec{E}$ i magnetycznego $\vec{B}$ w przypadku polaryzacji poprzecznej na granicy dwóch ośrodków}{ch1:img:fresnel_setup_TE}
 
 Przy takiej konfiguracji, jak na rysunku \ref{ch1:img:fresnel_setup_TE} warunek ciągłości składowej stycznej $\mu^{-1}\vec{B}$ jest wyrażony poprzez następujące równanie:
 \begin{equation}
--\frac{B_i}{\mu_i}\cos\theta_i + \frac{B_r}{\mu_i}\cos\theta_r = -\frac{B_t}{\mu_t}\cos\theta_t
+-\frac{B_i}{\mu_i}\cos\theta_i + \frac{B_r}{\mu_i}\cos\theta_r = -\frac{B_t}{\mu_t}\cos\theta_t.
 \end{equation}
 Z \eqref{ch1:eq:EBRelationship}, wykorzystując prawo odbicia $\theta_i = \theta_r$ oraz wiedząc, że fala odbita propaguje się w tym samym ośrodku co fala padająca $v_i = v_r$:
 \begin{equation}
-\frac{1}{\mu_iv_i}\left( E_i - E_r \right)\cos\theta_i = \frac{1}{\mu_tv_t}E_t\cos\theta_t
+\frac{1}{\mu_iv_i}\left( E_i - E_r \right)\cos\theta_i = \frac{1}{\mu_tv_t}E_t\cos\theta_t.
 \end{equation}
 Pamiętając, że $n = \frac{c}{v}$:
 \begin{equation}
-\frac{n_i}{\mu_i}\left(E_i - E_r \right)\cos\theta_i = \frac{n_t}{\mu_t}E_t\cos\theta_t
+\frac{n_i}{\mu_i}\left(E_i - E_r \right)\cos\theta_i = \frac{n_t}{\mu_t}E_t\cos\theta_t.
 \end{equation}
 Teraz łącząc to z warunkiem ciągłości składowej stycznej pola elektrycznego \eqref{ch1:eq:EParallelContinuity}:
 \begin{align}
-E_i\left( \frac{n_i}{\mu_i}\cos\theta_i - \frac{n_t}{\mu_t}\cos\theta_t \right) &= E_r\left( \frac{n_i}{\mu_i}\cos\theta_i + \frac{n_t}{\mu_t}\cos\theta_t \right)\\
-2E_i\frac{n_i}{\mu_i}\cos\theta_i &= E_t\left( \frac{n_i}{\mu_i}\cos\theta_i + \frac{n_t}{\mu_t}\cos\theta_t \right)
+E_i\left( \frac{n_i}{\mu_i}\cos\theta_i - \frac{n_t}{\mu_t}\cos\theta_t \right) &= E_r\left( \frac{n_i}{\mu_i}\cos\theta_i + \frac{n_t}{\mu_t}\cos\theta_t \right),\\
+2E_i\frac{n_i}{\mu_i}\cos\theta_i &= E_t\left( \frac{n_i}{\mu_i}\cos\theta_i + \frac{n_t}{\mu_t}\cos\theta_t \right),
 \end{align}
 \begin{align}
 \label{ch1:eq:rPerpendicularGeneral}
-r_\perp\equiv \left(\frac{E_r}{E_i}\right)_\perp &= \frac{\frac{n_i}{\mu_i}\cos\theta_i - \frac{n_t}{\mu_t}\cos\theta_t}{\frac{n_i}{\mu_i}\cos\theta_i + \frac{n_t}{\mu_t}\cos\theta_t}\\
-t_\perp\equiv \left(\frac{E_t}{E_i}\right)_\perp &= \frac{2\frac{n_i}{\mu_i}\cos\theta_i}{\frac{n_i}{\mu_i}\cos\theta_i + \frac{n_t}{\mu_t}\cos\theta_t}
+r_\perp\equiv \left(\frac{E_r}{E_i}\right)_\perp &= \frac{\frac{n_i}{\mu_i}\cos\theta_i - \frac{n_t}{\mu_t}\cos\theta_t}{\frac{n_i}{\mu_i}\cos\theta_i + \frac{n_t}{\mu_t}\cos\theta_t},\\
+t_\perp\equiv \left(\frac{E_t}{E_i}\right)_\perp &= \frac{2\frac{n_i}{\mu_i}\cos\theta_i}{\frac{n_i}{\mu_i}\cos\theta_i + \frac{n_t}{\mu_t}\cos\theta_t}.
 \end{align}
 Wyprowadzone współczynniki $r_\perp$ oraz $t_\perp$ są to tzw. amplitudowe współczynniki odpowiednio odbicia oraz załamania.
 Postępując w sposób analogiczny jak poprzednio można również pokazać, że dla fali elektromagnetycznej spolaryzowanej w taki sposób, że wektor pola elektrycznego $\vec{E}$ leży w płaszczyźnie padania, amplitudowe współczynniki będą wyglądały w następujący sposób:
 \begin{align}
 \label{ch1:eq:rParallelGeneral}
-r_\parallel\equiv \left(\frac{E_r}{E_i}\right)_\parallel &= \frac{\frac{n_t}{\mu_t}\cos\theta_i - \frac{n_i}{\mu_i}\cos\theta_t}{\frac{n_t}{\mu_t}\cos\theta_i + \frac{n_i}{\mu_i}\cos\theta_t}\\
-t_\parallel\equiv \left(\frac{E_t}{E_i}\right)_\parallel &= \frac{2\frac{n_i}{\mu_i}\cos\theta_i}{\frac{n_t}{\mu_t}\cos\theta_i + \frac{n_i}{\mu_i}\cos\theta_t}
+r_\parallel\equiv \left(\frac{E_r}{E_i}\right)_\parallel &= \frac{\frac{n_t}{\mu_t}\cos\theta_i - \frac{n_i}{\mu_i}\cos\theta_t}{\frac{n_t}{\mu_t}\cos\theta_i + \frac{n_i}{\mu_i}\cos\theta_t},\\
+t_\parallel\equiv \left(\frac{E_t}{E_i}\right)_\parallel &= \frac{2\frac{n_i}{\mu_i}\cos\theta_i}{\frac{n_t}{\mu_t}\cos\theta_i + \frac{n_i}{\mu_i}\cos\theta_t}.
 \end{align}
-W przypadku, gdy rozpatrywane materiały nie przejawiają cech magnetycznych tzn. $\mu_i \approx \mu_t \approx \mu_0$ powyższe równania ulegają znacznemu uproszczeniu.
+W przypadku gdy rozpatrywane materiały nie przejawiają cech magnetycznych tzn. $\mu_i \approx \mu_t \approx \mu_0$, powyższe równania ulegają znacznemu uproszczeniu.
 
 %%%%%%%%%%%%%%%%%%%%%%%%% Reflektancja i transmitancja
 
 W tym momencie znając wyrażenia na amplitudowe współczynniki odbicia i załamania można odpowiedzieć na pytanie, jaką część energii fali padającej uniesie ze sobą fala odbita, a ile załamana. Inaczej mówiąc, jaka będzie \textit{reflektancja} $R$ i \textit{transmitancja} $T$ w zadanych warunkach. W tym celu należy odwołać się do definicji oświetlenia, jako uśrednionej w czasie wartości wektora Poyntinga \eqref{ch1:eq:Irradiance}:
 \begin{equation}
-I = \frac{c\epsilon_0}{2}E_0^2
+I = \frac{c\epsilon_0}{2}E_0^2.
 \end{equation}
 Niech na interfejs $\Pi$ tak jak na rysunku \ref{ch1:img:reflectance_transmitance} pomiędzy ośrodkami pod kątem $\theta_i$ pada wiązka promieniowania, oświetlająca pewien obszar o polu $A$, zaś $I_i$, $I_r$, $I_t$ będą gęstościami strumienia promieniowania padającego, odbitego i załamanego.
 \addimage{chapters/ch1/img/reflectance_transmitance.png}{scale=0.4}{Odbicie i załamanie strumienia padającego promieniowania na powierzchni $\Pi$ (rzut na płaszczyznę padania)}{Odbicie i załamanie strumienia padającego promieniowania}{ch1:img:reflectance_transmitance}
 Wtedy moc odpowiednich wiązek będzie równa:
 \begin{align*}
-P_i &= I_iA\cos\theta_i\\
-P_r &= I_rA\cos\theta_r\\
-P_t &= I_tA\cos\theta_t
+P_i &= I_iA\cos\theta_i,\\
+P_r &= I_rA\cos\theta_r,\\
+P_t &= I_tA\cos\theta_t.
 \end{align*}
 W związku z tym reflektancja $R$ zdefiniowana jako stosunek mocy promieniowania odbitego $P_r$ do padającego $P_i$ będzie równa:
 \begin{equation}
-R\equiv\frac{P_r}{P_i}=\frac{I_rA\cos\theta_r}{I_iA\cos\theta_i}=\frac{I_r}{I_i} = \left( \frac{E_{0_r}}{E_{0_i}} \right)^2 = r^2
+R\equiv\frac{P_r}{P_i}=\frac{I_rA\cos\theta_r}{I_iA\cos\theta_i}=\frac{I_r}{I_i} = \left( \frac{E_{0_r}}{E_{0_i}} \right)^2 = r^2.
 \label{ch1:eq:Reflectance}
 \end{equation}
 W powyższym równaniu współczynniki związane z prędkością i względną przenikalnością uległy skróceniu, gdyż fala padająca i odbita poruszają się w tym samym ośrodku.
 
 Analogicznie transmitancja $T$, która jest stosunkiem mocy promieniowania transmitowanego $P_t$ do padającego $P_i$ (zakładając materiały niemagnetyczne $\mu=\mu_0$):
 \begin{equation}
-T\equiv\frac{P_t}{P_i}=\frac{I_tA\cos\theta_t}{I_iA\cos\theta_i}=\frac{\frac{v_t\epsilon_t}{2}\cos\theta_t}{\frac{v_i\epsilon_i}{2}\cos\theta_i}\left(\frac{E_{0_t}}{E_{0_i}} \right)^2 = \frac{\frac{1}{v_t}\cos\theta_t}{\frac{1}{v_i}\cos\theta_i}t^2 = \frac{\frac{n_t}{c}\cos\theta_t}{\frac{n_i}{c}\cos\theta_i}t^2 = \frac{n_t\cos\theta_t}{n_i\cos\theta_i}t^2
+T\equiv\frac{P_t}{P_i}=\frac{I_tA\cos\theta_t}{I_iA\cos\theta_i}=\frac{\frac{v_t\epsilon_t}{2}\cos\theta_t}{\frac{v_i\epsilon_i}{2}\cos\theta_i}\left(\frac{E_{0_t}}{E_{0_i}} \right)^2 = \frac{\frac{1}{v_t}\cos\theta_t}{\frac{1}{v_i}\cos\theta_i}t^2 = \frac{\frac{n_t}{c}\cos\theta_t}{\frac{n_i}{c}\cos\theta_i}t^2 = \frac{n_t\cos\theta_t}{n_i\cos\theta_i}t^2.
 \label{ch1:eq:Transmitance}
 \end{equation}
 
 Można pokazać, że w obu przypadkach polaryzacji pola elektrycznego $\vec{E}$ (tj.~poprzecznej $\vec{E_\perp}$ i podłużnej $\vec{E_\parallel}$) :
 \begin{equation}
-R + T = 1
+R + T = 1.
 \end{equation}
-Jest to wprost wyrażenie zasady zachowania energii.
+Jest to wprost wyrażenie zasady zachowania energii - w wyniku procesów rozpraszania energia przed rozproszeniem jest równa sumie energii wiązek rozproszonych.
 \addimage{chapters/ch1/img/real_angular_rt.png}{scale=0.50}{Reflektancja i transmitancja dla obu typów polaryzacji w funkcji kąta padania, $n=1,66\in\mathbb{R}$. Dla niskich kątów padania znaczącą część energii unosi fala transmitowana. Sytuacja ulega gwałtownej zmianie dopiero w okolicy kątów bliskich padaniu równoległemu do $\Pi$ (im mniejsze $n$ tym zmiana zachodzi gwałtowniej)}{Reflektancja i transmitancja dla przypadku obu typów polaryzacji w funkcji kąta padania}{ch1:img:real_angular_rt}
 Ogólny przypadek, w którym na ogół ośrodek wykazuje pewne tłumienie, przez co współczynnik załamania staje się zespolony \eqref{ch1:eq:GeneralRefractionCoeff} wymaga przepisania reflektancji i transmitancji w następujący sposób:
 \begin{align}
 \label{ch1:eq:ReflectanceGeneral}
-R &= rr^* = |r|^2\\
+R &= rr^* = |r|^2,\\
 \label{ch1:eq:TransmitanceGeneral}
-T &= \frac{n_t\cos\theta_t}{n_i\cos\theta_i}tt^* = \frac{n_t\cos\theta_t}{n_i\cos\theta_i}|t|^2
+T &= \frac{n_t\cos\theta_t}{n_i\cos\theta_i}tt^* = \frac{n_t\cos\theta_t}{n_i\cos\theta_i}|t|^2.
 \end{align}
 
 Uprośćmy teraz wyrażenia \eqref{ch1:eq:rPerpendicularGeneral} oraz \eqref{ch1:eq:rParallelGeneral} w taki sposób, że $\mu_i \approx \mu_t \approx \mu_0$ oraz $n_w = \frac{n_t}{n_i}=\eta - ik$ (dla uproszczenia zapisu zależność od częstotliwości zostanie pominięta):
 
 \begin{align}
-r_\perp &= \frac{\cos\theta_i - n_w\cos\theta_t}{\cos\theta_i + n_w\cos\theta_t}\\
-r_\parallel &= \frac{n_w\cos\theta_i - \cos\theta_t}{n_w\cos\theta_i + \cos\theta_t}
+r_\perp &= \frac{\cos\theta_i - n_w\cos\theta_t}{\cos\theta_i + n_w\cos\theta_t},\\
+r_\parallel &= \frac{n_w\cos\theta_i - \cos\theta_t}{n_w\cos\theta_i + \cos\theta_t}.
 \end{align}
 
 Obliczenie reflektancji dla obu przedstawionych polaryzacji prowadzi do wyniku:
 \begin{align}
 \label{ch1:eq:RPerp_general}
-R_\perp &= \frac{\left(\eta^2 + k^2\right)\cos^2\theta_t - 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_i}{\left(\eta^2 + k^2\right)\cos^2\theta_t + 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_i}\\
+R_\perp &= \frac{\left(\eta^2 + k^2\right)\cos^2\theta_t - 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_i}{\left(\eta^2 + k^2\right)\cos^2\theta_t + 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_i},\\
 \label{ch1:eq:RParallel_general}
-R_\parallel &= \frac{\left( \eta^2 + k^2 \right)\cos^2\theta_i - 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_t}{\left( \eta^2 + k^2 \right)\cos^2\theta_i + 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_t}
+R_\parallel &= \frac{\left( \eta^2 + k^2 \right)\cos^2\theta_i - 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_t}{\left( \eta^2 + k^2 \right)\cos^2\theta_i + 2\eta\cos\theta_i\cos\theta_t + \cos^2\theta_t}.
 \end{align}
 W przypadku dobrego przewodnika, tzn. takiego którego przewodność elektryczna $\sigma$ jest wysoka, prawdą jest jednak stwierdzenie, że fala przechodząca do takiego materiału będzie propagować się wzdłuż normalnej~($\theta_t = 0$) do granicy dwóch ośrodków i to niezależnie od wartości kąta padania $\theta_i$. Stąd powyższe równania ulegną uproszczeniu (tym razem zaznaczając bezpośrednio zależność częstotliwościową):
 \begin{align}
 \label{ch1:eq:RPerp_conductor}
-R_\perp(\omega) &= \frac{\left(\eta(\omega)^2 + k(\omega)^2\right) - 2\eta(\omega)\cos\theta_i + \cos^2\theta_i}{\left(\eta(\omega)^2 + k(\omega)^2\right) + 2\eta(\omega)\cos\theta_i + \cos^2\theta_i}\\
+R_\perp(\omega) &= \frac{\left(\eta(\omega)^2 + k(\omega)^2\right) - 2\eta(\omega)\cos\theta_i + \cos^2\theta_i}{\left(\eta(\omega)^2 + k(\omega)^2\right) + 2\eta(\omega)\cos\theta_i + \cos^2\theta_i},\\
 \label{ch1:eq:RParallel_conductor}
-R_\parallel(\omega) &= \frac{\left( \eta(\omega)^2 + k(\omega)^2 \right)\cos^2\theta_i - 2\eta(\omega)\cos\theta_i + 1}{\left( \eta(\omega)^2 + k(\omega)^2 \right)\cos^2\theta_i + 2\eta(\omega)\cos\theta_i + 1}
+R_\parallel(\omega) &= \frac{\left( \eta(\omega)^2 + k(\omega)^2 \right)\cos^2\theta_i - 2\eta(\omega)\cos\theta_i + 1}{\left( \eta(\omega)^2 + k(\omega)^2 \right)\cos^2\theta_i + 2\eta(\omega)\cos\theta_i + 1}.
 \end{align}
 Powyższe wyprowadzone równania na reflektancję ośrodków przewodzących są zgodne z formułami podanymi bez dowodu w~\cite{PBRT}.
 
-Na wykresie \ref{ch1:img:im_angular_r} zilustrowano zależność reflektancji dla poprzecznie i równolegle spolaryzowanej fali padającej na przewodnik dla ustalonych parametrów $\eta = 1,66$ oraz $k = 2$. Reflektancja jest znacznie większa już w przypadku padania prostopadłego $\theta_i = 0^\circ$ względem sytuacji zaprezentowanej na wykresie \ref{ch1:img:real_angular_rt} - im większe $k$ tym materiał(przewodnik) odbija więcej promieniowania. 
+Na wykresie \ref{ch1:img:im_angular_r} zilustrowano zależność reflektancji dla poprzecznie i równolegle spolaryzowanej fali padającej na przewodnik dla ustalonych parametrów $\eta = 1,66$ oraz $k = 2$. Reflektancja jest znacznie większa już w przypadku padania prostopadłego $\theta_i = 0^\circ$ względem sytuacji zaprezentowanej na wykresie \ref{ch1:img:real_angular_rt} - im większe $k$ tym materiał~(przewodnik) odbija więcej promieniowania. 
 
-W kontekście grafiki komputerowej poprawne wyliczenie reflektancji zwłaszcza w przypadku metali nie jest prostym zadaniem. Jak pokazano we wzorze \eqref{ch1:eq:SimplifiedRefractionCoeff} oba współczynniki $\eta$ oraz $k$ nie są stałe dla danego materiału, tylko zależą od częstości fali padającej $\omega$ i w przypadku większości materiałów nie jest to zależność trywialna. W wielu przypadkach można posłużyć się wartościami tablicowymi, w innych pomiary tych wartości mogą być niedostępne. Wykres \ref{ch1:img:gold_nk} ilustruje przykładową zależność dla złota w funkcji długości fali padającej $\lambda$\footnote{Z punktu widzenia nauki znacznie bardziej wartościowy byłby wykres w funkcji częstości $\omega$ fali padającej z uwagi na fakt, że długość fali $\lambda$ zależy od ośrodka, w którym się ona propaguje. Cytowane źródło pokazuje jednak praktyczne (tzn. inżynierskie) podejście w kwestii tworzenia systemu generowania realistycznej grafiki - Autorom jest łatwiej w obliczeniach posługiwać się wprost długością fali. }. Jest on o tyle interesujący, że można z jego pomocą wyjaśnić, dlaczego złoto posiada taką barwę a nie inną. Otóż wartość $k$ jest niemalejąca w funkcji długości fali padającej (dla większości zakresu widzialnego) i ulega szybkiemu wzrostowi zaraz po przekroczeniu długości ok. $500\ \mathrm{nm}$ (w okolicach światła żółtego). Analiza wzorów \eqref{ch1:eq:RPerp_conductor}, \eqref{ch1:eq:RParallel_conductor} oraz wykresu \ref{ch1:img:im_angular_r} mówi, że dla danego kąta padania $\theta_i$ większa wartość $k$ skutkuje zwiększeniem reflektancji - złoto silnie selektywnie odbija światło żółte i czerwone.
+W kontekście grafiki komputerowej poprawne wyliczenie reflektancji zwłaszcza w przypadku metali nie jest prostym zadaniem. Jak pokazano we wzorze \eqref{ch1:eq:SimplifiedRefractionCoeff} oba współczynniki $\eta$ oraz $k$ nie są stałe dla danego materiału, tylko zależą od częstości fali padającej $\omega$ i w przypadku większości materiałów nie jest to zależność trywialna. W wielu przypadkach można posłużyć się wartościami tablicowymi, w innych pomiary tych wartości mogą być niedostępne. Wykres \ref{ch1:img:gold_nk} ilustruje przykładową zależność dla złota w funkcji długości fali padającej $\lambda$\footnote{Z punktu widzenia nauki znacznie bardziej wartościowy byłby wykres w funkcji częstości $\omega$ fali padającej z uwagi na fakt, że długość fali $\lambda$ zależy od ośrodka, w którym się ona propaguje. Cytowane źródło pokazuje jednak praktyczne~(tzn. inżynierskie) podejście w kwestii tworzenia systemu generowania realistycznej grafiki - Autorom jest łatwiej w obliczeniach posługiwać się wprost długością fali. }. Jest on o tyle interesujący, że można z jego pomocą wyjaśnić, dlaczego złoto posiada swoją charakterystyczną barwę. Otóż wartość $k$ jest niemalejąca w funkcji długości fali padającej (dla większości zakresu widzialnego) i ulega szybkiemu wzrostowi zaraz po przekroczeniu długości ok. $500\ \mathrm{nm}$ (w okolicach światła żółtego). Analiza wzorów \eqref{ch1:eq:RPerp_conductor}, \eqref{ch1:eq:RParallel_conductor} oraz wykresu \ref{ch1:img:im_angular_r} mówi, że dla danego kąta padania $\theta_i$ większa wartość $k$ skutkuje zwiększeniem reflektancji - złoto silnie selektywnie odbija światło żółte i czerwone.
 
 \addimage{chapters/ch1/img/im_angular_r.png}{scale=0.50}{Reflektancja dla dobrego przewodnika dla obu typów polaryzacji w funkcji kąta padania, $n_w = \eta + ik = 1,66 + 2i\in\mathbb{C}$. Obecność czynnika tłumiącego sprawia, iż tylko niewielka objętość przewodnika odczuwa obecność padającej fali, dzięki czemu większa część promieniowania (w porównaniu z dielektrykami) odbija się od powierzchni nawet, gdy $\theta_i = 0^\circ$ - jest to przyczyna tzw. połysku metalicznego }{Reflektancja dla dobrego przewodnika dla obu typów polaryzacji w funkcji kąta padania}{ch1:img:im_angular_r}
 
 \addimage{chapters/ch1/img/gold_nk.png}{scale=0.30}{Współczynniki $\eta$ oraz $k$ dla złota dla optycznych długości fal $\lambda$. Wykres zaczerpnięty z~\cite{PBRT}}{Współczynniki $\eta$ oraz $k$ dla złota dla optycznych długości fal}{ch1:img:gold_nk}
 
 \subsection{Podstawowe zagadnienia radiometrii}
-Radiometria zajmująca się ilościowym opisem promieniowania oraz wielkości fizycznych z nim związanych dostarcza odpowiednich narzędzi matematycznych stanowiących podstawę do wyprowadzenia algorytmów używanych w symulacjach propagacji światła w przestrzeni. W połączeniu z zasadami wynikającymi z optyki geometrycznej oraz zależnościami wyprowadzonymi w poprzednim podrozdziale pozwala stworzyć system śledzenia promieni, zdolny do generowania fotorealistycznych obrazów. 
+Radiometria zajmująca się ilościowym opisem promieniowania oraz wielkości fizycznych z nim związanych, dostarcza odpowiednich narzędzi matematycznych stanowiących podstawę do wyprowadzenia algorytmów używanych w symulacjach propagacji światła w przestrzeni. W połączeniu z zasadami wynikającymi z optyki geometrycznej oraz zależnościami wyprowadzonymi w poprzednim podrozdziale pozwala stworzyć system śledzenia promieni, zdolny do generowania fotorealistycznych obrazów. 
 
 \begin{itemize}
 \item \textit{Strumień natężenia/moc promieniowania} $\Phi$ (ang. \textit{radiant flux/power}) jest miarą emitowanej/odbitej/transmitowanej/padającej energii promieniowania $Q$ w  jednostce czasu $t$ (mocy promieniowania) i zdefiniowana jest jako:
 \begin{equation}
-\Phi = \frac{\partial Q}{\partial t}
+\Phi = \frac{\partial Q}{\partial t}.
 \end{equation}
 \item \textit{Oświetlenie} (ang. \textit{irradiance}), czyli powierzchniowa gęstość mocy promieniowania padającego\footnote{Różnica w oznaczeniu oświetlenia $E$, względem dotychczasowego $I$ bierze się najprawdopodobniej z faktu, iż historycznie radiometria rozwijana była w oderwaniu od ścisłej teorii elektromagnetyzmu. W radiometrii symbolem $I$ oznaczana jest natomiast \textit{intensywność}~(ang. \textit{intensity}) definiowana jako miara strumienia natężenia przypadająca na jednostkowy kąt bryłowy $I = \frac{\partial\Phi}{\partial\omega}$~\cite{PBRT}.}
 \begin{equation}
-E = \frac{\partial\Phi}{\partial A} = \frac{\partial^2 Q}{\partial A \partial t}
+E = \frac{\partial\Phi}{\partial A} = \frac{\partial^2 Q}{\partial A \partial t},
 \end{equation}
 odpowiada, jak już wspomniano wcześniej, uśrednionej w czasie wartości wektora Poyntinga $\left\langle \vec{S} \right\rangle_T$, wiążącego ze sobą przestrzenne zależności pola elektrycznego $\vec{E}$ i magnetycznego $\vec{B}$. Wielkość ta pozwala wyjaśnić m. in. prawa odwrotności kwadratu odległości $\frac{1}{r^2}$ oraz Lamberta:
 \begin{itemize}
 \item Jeżeli przyjmiemy, że na rysunku \ref{ch1:img:Rays}~a) w punkcie $A$ znajduje się izotropowe punktowe źródło promieniowania o stałej mocy $\phi$ to oba fronty falowe (żółty (z) i pomarańczowy (p)) będą unosić ze sobą identyczną ilość energii, jednak z uwagi na różną odległość od źródła powierzchniowa gęstość energii będzie różna:
 \begin{align*}
-\Phi_{z} &= \Phi_{p}\\
-E_{z}S_{z} &= E_{p}S_{p}\\
-4\pi r_{z}^2E_{z} &= 4\pi r_{p}^2E_{p}\\
+\Phi_{z} &= \Phi_{p},\\
+E_{z}S_{z} &= E_{p}S_{p},\\
+4\pi r_{z}^2E_{z} &= 4\pi r_{p}^2E_{p},\\
 \frac{E_z}{E_p} &= \frac{r_p^2}{r_z^2}.
 \end{align*}
 Skąd:
 \begin{equation}
-E\propto\frac{1}{r^2}
+E\propto\frac{1}{r^2}.
 \label{ch1:eq:InvSqrLaw}
 \end{equation}
 \item Kierunkowe źródło światła np. latarka ustawione w taki sposób, że promieniowanie pada prostopadle do powierzchni oświetla obszar $A_\perp$ o oświetleniu $E_1 \propto \frac{\Phi}{A_\perp}$. W miarę zwiększania kąta padania $\theta_i$ oświetlana powierzchnia zwiększa się $A = \frac{A_\perp}{\cos\theta_i}$ i $E_2 \propto \frac{\Phi}{A} = \frac{\Phi\cos\theta_i}{A_\perp}$. Na tej podstawie prawo Lamberta stanowi, że:
 \begin{equation}
-E\propto \cos\theta_i
+E\propto \cos\theta_i.
 \label{ch1:eq:CosLambertLaw}
 \end{equation}
 \addimage{chapters/ch1/img/conic_section.png}{scale=0.35}{Zależność pola i kształtu oświetlanej powierzchni od kąta padania. Światło latarki padające na płaszczyznę tworzy na niej obszary, których brzegi są krzywymi stożkowymi. Dla padania prostopadłego $\theta_i = 0^\circ$ brzeg ten jest okręgiem, a powierzchnia nim objęta najmniejsza. Parametr $e$ odpowiada ekscentryczności krzywej stożkowej~\cite{ConicSection}}{Zależność pola i kształtu oświetlanej powierzchni od kąta padania}{ch1:img:conic_section}
@@ -484,7 +484,7 @@ Różniczkowe oświetlenie wynikające z radiancji padającej na $\vec{p}$ z def
 \end{equation}
 Z drugiej strony wiadomo, że wskutek tego oświetlenia pewna część energii zostanie rozproszona w kierunku $\vec{\omega_o}$. Założenie, że mamy do czynienia z ośrodkami o liniowej odpowiedzi prowadzi do wniosku, że różniczkowa radiancja wychodząca jest proporcjonalna do różniczkowego oświetlenia:
 \begin{equation}
-\mathrm{d}L_o(\vec{p}, \vec{\omega_o}) \propto \mathrm{d}E(\vec{p},\vec{\omega_i})
+\mathrm{d}L_o(\vec{p}, \vec{\omega_o}) \propto \mathrm{d}E(\vec{p},\vec{\omega_i}).
 \end{equation}
 Funkcja $f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i})$ będąca czynnikiem proporcjonalności między $\mathrm{d}L_o(\vec{p}, \vec{\omega_o})$ a $\mathrm{d}E(\vec{p},\vec{\omega_i})$ jest tzw. \textit{dwukierunkową funkcją rozkładu rozproszenia}~(ang. \textit{bidirectional scattering distribution function}, BSDF) i opisuje to, jak dużo padającego światła z kierunku $\vec{\omega_i}$ jest rozpraszane przez powierzchnię w punkcie $\vec{p}$ w kierunku $\vec{\omega_o}$:
 \begin{equation}
@@ -499,7 +499,7 @@ Aby BSDF uznać za realistyczne tzn. zgodne z podstawowymi zjawiskami fizycznymi
 \begin{equation}
 \forall_{\vec{p}, \vec{\omega_o}}: \int_{\mathcal{S}^2}f_s(\vec{p}, \vec{\omega_o}, \vec{\omega'})\cos\theta'\mathrm{d}\vec{\omega'} \leq 1,
 \end{equation}
-gdzie całkowanie odbywa się po sferze wokół punktu $p$.
+gdzie całkowanie odbywa się po sferze wokół punktu $\vec{p}$.
 \item Jeżeli BSDF opisuje procesy odbicia~(ang. \textit{bidirectional reflectance distribution function}, BRDF) musi ona spełniać relację odwracalność biegu promieni~(tzw. \textit{zasada Helmholtza}):
 \begin{equation}
 f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i}) = f_s(\vec{p}, \vec{\omega_i}, \vec{\omega_o})
@@ -507,7 +507,7 @@ f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i}) = f_s(\vec{p}, \vec{\omega_i}, \vec
 \end{enumerate}
 Równanie opisujące wpływ rozkładu radiancji padającej na rozkład po rozproszeniu jest kluczem do generowania realistycznej grafiki komputerowej i nazywane jest \textit{relacją rozpraszania}~(ang. \textit{scattering equation}):
 \begin{equation}
-L_o(\vec{p}, \vec{\omega_o}) = \int_{\mathcal{S}^2}f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i})L_i(\vec{p}, \vec{\omega_i})\cos\theta_i\mathrm{d}\vec{\omega_i}
+L_o(\vec{p}, \vec{\omega_o}) = \int_{\mathcal{S}^2}f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i})L_i(\vec{p}, \vec{\omega_i})\cos\theta_i\mathrm{d}\vec{\omega_i}.
 \label{ch1:eq:ScatteringEquation}
 \end{equation}
 \end{itemize}
@@ -520,21 +520,21 @@ Znakomita część modeli operuje zbiorem kilku intuicyjnych parametrów, które
 Wspomniano już wcześniej, że jednym z przypadków BSDF są BRDF, których zadaniem jest symulacja zjawisk odbicia. Odbicie w rzeczywistych materiałach jest wypadkową różnych mechanizmów (rysunek \ref{ch1:img:Reflection_terms}), których efekty można opisać jako:
 \begin{itemize}
 \item \textit{odbicie rozproszone}~(ang. \textit{diffuse}), które jest najlepiej dostrzegalne w przypadku powierzchni matowych i w najprostszym modelu Lamberta zakłada, że padająca radiancja jest odbijana jednakowo we wszystkich kierunkach,
-\item \textit{kierunkowe odbicie rozproszone}~(ang. \textit{glossy specular}) występuje, gdy powierzchnia materiału w skali mikro jest niemal idealnie gładka i odbicie zaczyna nabierać charakteru kierunkowego, w kierunku bazowym zadanym przez prawo odbicia modyfikowanym przez pewien rozkład kierunków. Szczególnym przypadkiem tego typu zachowania jest \textit{odbicie zwierciadlane}~(ang. \textit{perfect specular}), gdy powierzchnia jest idealnie gładka, a przez to kierunek bazowy jest jedynym kierunkiem, w którym odbicie następuje. 
+\item \textit{kierunkowe odbicie rozproszone}~(ang. \textit{glossy specular}) występuje, gdy powierzchnia materiału w skali mikro jest niemal idealnie gładka i odbicie zaczyna nabierać charakteru kierunkowego w kierunku bazowym, zadanym przez prawo odbicia modyfikowanym przez pewien rozkład kierunków. Szczególnym przypadkiem tego typu zachowania jest \textit{odbicie zwierciadlane}~(ang. \textit{perfect specular}), gdy powierzchnia jest idealnie gładka, a przez to kierunek bazowy jest jedynym kierunkiem, w którym odbicie następuje. 
 \end{itemize}
 \addimage{chapters/ch1/img/Reflection_terms.png}{scale=0.45}{Rodzaje odbicia od powierzchni. Odbicie rozproszone a), kierunkowe rozproszone b) i jego szczególny przypadek odbicie zwierciadlane c)}{Rodzaje odbicia od powierzchni}{ch1:img:Reflection_terms}
 Mając powyższe na uwadze w grafice komputerowej stosuje się zwykle wypadkową tych zjawisk używając sumy przyczynków do radiancji wychodzącej pochodzących od odbicia rozproszonego i kierunkowego:
 \begin{equation}
-L_o(\vec{p}, \vec{\omega_o}) = L_{o_d}(\vec{p}, \vec{\omega_o}) + L_{o_s}(\vec{p}, \vec{\omega_o})
+L_o(\vec{p}, \vec{\omega_o}) = L_{o_d}(\vec{p}, \vec{\omega_o}) + L_{o_s}(\vec{p}, \vec{\omega_o}).
 \end{equation}
-Istnieje jeszcze dodatkowy (stały dla danego materiału) składnik radiancji wychodzącej $L_{o_a}(\vec{p}, \vec{\omega_o})=L_{o_a}(\vec{p})$ a pochodzący od hipotetycznego bezkierunkowego źródła światła~(ang. \textit{ambient light}), którego celem jest zgrubne (zerowe) przybliżenie faktu, że światło, które nie oświetla bezpośrednio danego obiektu ulega wielokrotnym odbiciom w przestrzeni zanim dotrze do obserwatora. 
+Istnieje jeszcze dodatkowy (stały dla danego materiału) składnik radiancji wychodzącej $L_{o_a}(\vec{p}, \vec{\omega_o})=L_{o_a}(\vec{p})$ a pochodzący od hipotetycznego bezkierunkowego źródła światła~(ang. \textit{ambient light}), którego celem jest zgrubne (zerowe) przybliżenie faktu, że światło, które nie oświetla bezpośrednio danego obiektu ulega wielokrotnym odbiciom w przestrzeni zanim dotrze do obserwatora:
 \begin{align}
-L_o(\vec{p}, \vec{\omega_o}) &= L_{o_a}(\vec{p}) + L_{o_d}(\vec{p}, \vec{\omega_o}) + L_{o_s}(\vec{p}, \vec{\omega_o})\\
+L_o(\vec{p}, \vec{\omega_o}) &= L_{o_a}(\vec{p}) + L_{o_d}(\vec{p}, \vec{\omega_o}) + L_{o_s}(\vec{p}, \vec{\omega_o}),\\
 L_{o_a}(\vec{p}) &= k_a(\vec{p})L_a,
 \end{align}
 gdzie:
 \begin{itemize}
-\item[] $L_a$ - stała wartość radiancji wynikającej z globalnego oświetlenia,
+\item[] $L_a$ - stała wartość radiancji wynikająca z globalnego oświetlenia,
 \item[] $k_a(\vec{p}) \in [0, 1]$ - współczynnik dla danego materiału określający stopień jego interakcji ze światłem otoczenia.
 \end{itemize}
 Tak naprawdę jest to wyraz sztuczny, podyktowany wygodą oraz skróceniem czasu tworzenia grafiki. Śledzenie promieni, które u swoich podstaw zakłada rozważanie wielu ścieżek, po których światło może się poruszać automatycznie doświetla obiekty, które nie muszą leżeć w bezpośrednim zasięgu oddziaływania źródeł światła tworząc znacznie bardziej realistyczne rezultaty. 
@@ -542,7 +542,7 @@ Tak naprawdę jest to wyraz sztuczny, podyktowany wygodą oraz skróceniem czasu
 \subsubsection{Model Lamberta światła rozproszonego}
 Podstawowy i najprostszy model oświetlenia powierzchni (pomijając interakcję z wirtualnym światłem otoczenia) stanowiący bazę dla innych bardziej złożonych algorytmów. Bazuje on na wspomnianym wcześniej prawie kosinusów Lamberta~\eqref{ch1:eq:CosLambertLaw} i sprawdza się dla powierzchni rozpraszających światło idealnie we wszystkich kierunkach. Dla takich materiałów odbita radiancja nie jest funkcją $\vec{\omega_o}$ tzn. $L_o(\vec{p}, \vec{\omega_o}) = L_o(\vec{p})$. Mając na uwadze wyprowadzone ogólne równanie rozpraszania~\eqref{ch1:eq:ScatteringEquation} jest to możliwe tylko wtedy, gdy sama funkcja BSDF nie zależy od $\vec{\omega_o}$ ani $\vec{\omega_i}$~(z uwagi na zasadę odwracalności w przypadku odbicia) zatem:
 \begin{equation}
-L_o(\vec{p}) = f_s(\vec{p})\int_{\mathcal{S}^2}L_i(\vec{p}, \vec{\omega_i})\cos\theta_i\mathrm{d}\vec{\omega_i}= f_s(\vec{p})E_i(\vec{p})
+L_o(\vec{p}) = f_s(\vec{p})\int_{\mathcal{S}^2}L_i(\vec{p}, \vec{\omega_i})\cos\theta_i\mathrm{d}\vec{\omega_i}= f_s(\vec{p})E_i(\vec{p}).
 \end{equation}
 Różniczkowy wyjściowy strumień natężenia musi być zatem równy:
 \begin{align}
@@ -552,16 +552,16 @@ Różniczkowy wyjściowy strumień natężenia musi być zatem równy:
 &= \mathrm{d}A\cdot\pi L_o(\vec{p})\int_0^{\frac{\pi}{2}}\mathrm{d}\theta_o\sin 2\theta_o \nonumber\\
 &= \mathrm{d}A\cdot\pi L_o(\vec{p})\nonumber\\
 &= \mathrm{d}A\cdot\pi f_s(\vec{p})E_i(\vec{p})\nonumber\\
-&= \mathrm{d}\Phi_i\cdot\pi f_s(\vec{p})
+&= \mathrm{d}\Phi_i\cdot\pi f_s(\vec{p}).
 \end{align}
 Całkowanie po sferze wokół punktu $\vec{p}$ zostało zredukowane do całkowania po półsferze wyznaczonej przez kierunek normalny w $\vec{p}$. Niech $k_d(\vec{p}) = \frac{\mathrm{d}\Phi_o}{\mathrm{d}\Phi_i}$ będzie stopniem odbicia, wtedy poszukiwana funkcja BSDF~(BRDF) będzie następująca:
 \begin{equation}
-f_s(\vec{p}) = \frac{k_d(\vec{p})}{\pi}
+f_s(\vec{p}) = \frac{k_d(\vec{p})}{\pi}.
 \label{ch1:eq:LambertBRDF}
 \end{equation}
 
 \subsubsection{Model Orena-Nayara światła rozproszonego}
-Zdecydowana większość rzeczywistych powierzchni, mimo że wydaje się być gładka w rzeczywistości nie jest. Badanie powierzchni na przykład mikroskopią sił atomowych pokazuje, że  materiał w rzeczywistości posiada pewne mikronierówności - te zaś wpływają na to jak dany materiał jako całość rozprasza światło.
+Zdecydowana większość rzeczywistych powierzchni, mimo że wydaje się być gładka w rzeczywistości nie jest. Badanie powierzchni na przykład mikroskopią sił atomowych (ang. \textit{Atomic Force Microscopy}, AFM) pokazuje, że  materiał w rzeczywistości posiada pewne mikronierówności - te zaś wpływają na to jak dany materiał jako całość rozprasza światło.
 \addimage{chapters/ch1/img/afm_surface_topology.png}{scale=0.3}{Topologia rzeczywistej powierzchni uzyskana techniką mikroskopii sił atomowych~(AFM)~\cite{SurfaceImaging}}{Topologia rzeczywistej powierzchni}{ch1:img:afm_surface_topology}
 Dość powszechnym podejściem w symulacjach jest przybliżenie powierzchni materiału poprzez tzw. \textit{mikrościanki}~(ang. \textit{microfacet}). Gdy oświetlona zostaje różniczkowa powierzchnia $\mathrm{d}A$ można przyjąć, że określona liczba mikrościanek bierze udział w procesie rozpraszania. Wynik rozpraszania zależeć będzie od wkładu poszczególnych mikrościanek w ten proces oraz funkcji określającej ich rozkład przestrzenny.
 \addimage{chapters/ch1/img/Small_roughness.png}{scale=0.4}{Przybliżenie powierzchni w modelu mikrościanek dla niskiej szorstkości. Wektory normalne do poszczególnych mikrościanek $\vec{n_f}$ niewiele się różnią od wypadkowego wektora normalnego $\vec{n}$}{Przybliżenie powierzchni w modelu mikrościanek dla niskiej szorstkości}{ch1:img:Small_roughness}
@@ -569,13 +569,13 @@ Dość powszechnym podejściem w symulacjach jest przybliżenie powierzchni mate
 
 Jednym z takich modeli, który bierze pod uwagę fizyczne właściwości powierzchni i modeluje światło rozproszone jest model wprowadzony i potwierdzony eksperymentalnie przez Orena i Nayara~\cite{Oren94generalizationof}\cite{Nayar95visualappearance}. Twórcy przybliżyli powierzchnię poprzez zbiór V-kształtnych i symetrycznych rowków, które indywidualnie zachowują się tak jak to wynika z modelu Lamberta, o rozkładzie orientacji opisanym poprzez rozkład Gaussa. Stopień szorstkości kontrolowany jest parametrem $\sigma^2$ będący wariancją rozkładu. Pełen model charakteryzuje się dość wysoką złożonością obliczeniową, jednak jego Twórcy na podstawie analizy wpływu poszczególnych składowych na wynik końcowy zaproponowali uproszczoną i stosowaną w praktyce formę:
 \begin{align}
-f_s(\vec{p}, \vec{\omega_i}(\phi_i, \theta_i), \vec{\omega_o}(\phi_o, \theta_o)) &= \frac{k_d(\vec{p})}{\pi}(A + B\max(0, \cos(\phi_i - \phi_o))\sin\alpha\tan\beta)\\
-A &= 1 - \frac{\sigma^2}{2(\sigma^2 + 0.33)}\\
-B &= \frac{0.45\sigma^2}{\sigma^2 + 0.09}\\
-\alpha &= \max(\theta_i, \theta_o)\\
-\beta &= \min(\theta_i, \theta_o)
+f_s(\vec{p}, \vec{\omega_i}(\phi_i, \theta_i), \vec{\omega_o}(\phi_o, \theta_o)) &= \frac{k_d(\vec{p})}{\pi}(A + B\max(0, \cos(\phi_i - \phi_o))\sin\alpha\tan\beta),\\
+A &= 1 - \frac{\sigma^2}{2(\sigma^2 + 0.33)},\\
+B &= \frac{0.45\sigma^2}{\sigma^2 + 0.09},\\
+\alpha &= \max(\theta_i, \theta_o),\\
+\beta &= \min(\theta_i, \theta_o).
 \end{align}
-Mimo, że jest model Orena-Nayara jest klasyfikowany jako model fizyczny jest on kontrolowany pojedynczym parametrem $\sigma^2$, co jest jego dużą zaletą. Co więcej, gdy $\sigma^2 = 0$ (czyli powierzchnia jest idealnie gładka) funkcja BSDF przechodzi naturalnie w model Lamberta~($A=1$, $B=0$). 
+Mimo, że model Orena-Nayara jest klasyfikowany jako model fizyczny, jest on kontrolowany pojedynczym parametrem $\sigma^2$, co jest jego dużą zaletą. Co więcej, gdy $\sigma^2 = 0$ (czyli powierzchnia jest idealnie gładka) funkcja BSDF przechodzi naturalnie w model Lamberta~($A=1$, $B=0$). 
 
 W modelu tym należy mieć na uwadze, iż kąty $\phi_i$, $\theta_i$, $\phi_o$ oraz $\theta_o$, które podają wzajemną relację przestrzenną między $\vec{\omega_i}$ a $\vec{\omega_o}$ muszą być określone względem płaszczyzny $\Pi$ definiowanej poprzez wektor normalny $\vec{n}$ w punkcie zderzenia $\vec{p}$. Konieczne jest zatem stworzenie ortonormalnej bazy w $\vec{p}$, gdzie jednym z wersorów jest $\vec{n}$ i dokonanie rzutowania $\vec{\omega_i}$ i $\vec{\omega_o}$ na wektory tej bazy w celu określenia odpowiednich kątów.
 
@@ -596,7 +596,7 @@ Pewną modyfikacją oryginalnego modelu Phonga jest model Blinna-Phonga, który 
 \end{equation}
 Wektor ten jest następnie używany w celu określenia kąta $\alpha = \angle(\vec{\omega_o}, \vec{h})$ i użyty w ten sam sposób jak w oryginalnym modelu Phonga~\eqref{ch1:eq:PhongBRDFNonnormalized}.
 
-\addimage{chapters/ch1/img/Specular_reflection_blinn.png}{scale=0.5}{Modelowanie odbić w modelu Blinna-Phonga; Kąt $\alpha$ definiowany jest jako kąt między między $\vec{h} = \frac{\vec{l} + \vec{\omega_o}}{|\vec{l} + \vec{\omega_o}|}$ a odbiciem względem normalnej $\vec{n}$ do powierzchni kierunku do źródła światła $\vec{l}$ }{Modelowanie odbić w modelu Blinna-Phonga}{ch1:img:Specular_reflection_blinn}
+\addimage{chapters/ch1/img/Specular_reflection_blinn.png}{scale=0.5}{Modelowanie odbić w modelu Blinna-Phonga. Kąt $\alpha$ definiowany jest jako kąt między między $\vec{h} = \frac{\vec{l} + \vec{\omega_o}}{|\vec{l} + \vec{\omega_o}|}$ a odbiciem względem normalnej $\vec{n}$ do powierzchni kierunku do źródła światła $\vec{l}$ }{Modelowanie odbić w modelu Blinna-Phonga}{ch1:img:Specular_reflection_blinn}
 
 Oba te modele mają tę wadę, że są modelami empirycznymi tzn. nie biorą pod uwagę rzeczywistych zjawisk zachodzących w materiale. Co więcej ani model Phonga ani Blinna-Phonga nie spełnia podstawowych założeń związanych z funkcją BRDF~\cite{Lewis94makingshaders} tzn. łamana jest zasada odwracalności oraz zachowania energii. Aby temu zaradzić należy dokonać normalizacji:
 
@@ -604,7 +604,7 @@ Oba te modele mają tę wadę, że są modelami empirycznymi tzn. nie biorą pod
 1 &= c\int_{\mathcal{S}^2}\acute{f_s}(\cos\alpha; e)\cos\alpha\mathrm{d}\vec{\omega}\nonumber\\
 &= c\int_0^{2\pi}\mathrm{d}\alpha\int_0^{\frac{\pi}{2}}\mathrm{d}\alpha\cos^{e + 1}\alpha\sin\alpha\nonumber\\
 &= 2\pi c\int_0^1 u^{e + 1}\mathrm{d}u\nonumber\\
-&= \frac{2\pi c}{e + 2}
+&= \frac{2\pi c}{e + 2}.
 \end{align}
 Stąd uwzględniając stałą normalizacyjną $c$ właściwa postać BSDF dla modelu Phonga i Blinna-Phonga ma postać:
 \begin{equation}
@@ -614,7 +614,7 @@ f_s(\vec{p}, \alpha; e) = k_s(\vec{p})\frac{e + 2}{2\pi}\cos^e\alpha
 
 Okazuje się jednak, że sama normalizacja nie jest wystarczająca~\cite{Lafortune94usingthe}. Skoro odbicie w rzeczywistych materiałach jest wypadkową różnych mechanizmów odbicia to aby zasada zachowania energii była spełniona, należy nałożyć ograniczenie na sumę współczynników:
 \begin{equation}
-k_d(\vec{p}) + k_s(\vec{p}) \leq 1
+k_d(\vec{p}) + k_s(\vec{p}) \leq 1.
 \end{equation}
 
 \subsubsection{Model Torrance'a-Sparrowa dla odbić kierunkowych}
@@ -629,16 +629,16 @@ Składa się na nią:
 \begin{itemize}
 \item[] $D(\vec{\omega_h})$ - czynnik rozkładu orientacji mikrościanek, który w różnych publikacjach można być opisany poprzez różne funkcje rozkładu (np. Gaussa). W tym konkretnym przypadku posługiwać będziemy się rozkładem Blinna znanym już z dyskusji o modelu Phonga~\eqref{ch1:eq:PhongBRDFNormalized}:
 \begin{equation}
-D(\vec{\omega_h}) = c(\vec{\omega_h}\cdot\vec{n})^e = \frac{e + 2}{2\pi}(\vec{\omega_h}\cdot\vec{n})^e
+D(\vec{\omega_h}) = c(\vec{\omega_h}\cdot\vec{n})^e = \frac{e + 2}{2\pi}(\vec{\omega_h}\cdot\vec{n})^e.
 \end{equation}
 \item[] $G(\vec{\omega_o}, \vec{\omega_i})$ - czynnik geometryczny, który wyraża, jaka część światła dla danej pary kierunków $(\vec{\omega_o}, \vec{\omega_i})$ nie zostaje osłonięta w wyniku relacji między wzajemnym położeniem mikrościanek. Efekt ten obliczany jest używając wyrażenia:
 \begin{equation}
-G(\vec{\omega_o}, \vec{\omega_i}) = \min\left\lbrace 1, \frac{2(\vec{n}\cdot\vec{\omega_h})(\vec{n}\cdot\vec{\omega_o})}{\vec{\omega_o}\cdot\vec{\omega_h}}, \frac{2(\vec{n}\cdot\vec{\omega_h})(\vec{n}\cdot\vec{\omega_i})}{\vec{\omega_o}\cdot\vec{\omega_h}} \right\rbrace
+G(\vec{\omega_o}, \vec{\omega_i}) = \min\left\lbrace 1, \frac{2(\vec{n}\cdot\vec{\omega_h})(\vec{n}\cdot\vec{\omega_o})}{\vec{\omega_o}\cdot\vec{\omega_h}}, \frac{2(\vec{n}\cdot\vec{\omega_h})(\vec{n}\cdot\vec{\omega_i})}{\vec{\omega_o}\cdot\vec{\omega_h}} \right\rbrace.
 \end{equation}
-\item[] $F_r(\vec{\omega_o})$ - współczynnik odbicia obliczony zgodnie z wyprowadzonymi wzorami na współczynniki Fresnela \eqref{ch1:eq:RPerp_general}-\eqref{ch1:eq:RParallel_conductor}~(kąt padania $\theta_h$ mierzony jest między $\vec{\omega_i}$ a $\vec{\omega_h}$). 
+\item[] $F_r(\vec{\omega_o})$ - współczynnik odbicia obliczony zgodnie z wyprowadzonymi wzorami na współczynniki Fresnela \eqref{ch1:eq:RPerp_general}-\eqref{ch1:eq:RParallel_conductor}~(kąt padania $\theta_h$ mierzony jest między $\vec{\omega_o}$ a $\vec{\omega_h}$). 
 \end{itemize}
 \section{Podsumowanie}
-Celem tego rozdziału było pokazanie podstawowych praw fizyki, rządzących transportem światła pomiędzy obiektami. Szczególnie istotne były wszystkie kroki potrzebne do wyprowadzenia wzorów Fresnela na reflektancję i transmitancję wraz z relacją rozpraszania, która wiąże ze sobą radiancję wychodzącą z radiancją padającą poprzez funkcję BSDF. Zaprezentowane zostały również przykładowe funkcje BSDF dla modelowania odbić od powierzchni (czyli funkcje BRDF). Temat funkcji BSDF jest znacznie bardziej obszerny niż zaprezentowano tutaj i więcej informacji na ten temat można znaleźć w cytowanej bibliografii. Niemniej jednak opisane zagadnienia korespondują z tym, co udało się zrealizować w części projektowej.
+Celem tego rozdziału było pokazanie podstawowych praw fizyki rządzących transportem światła pomiędzy obiektami. Szczególnie istotne były wszystkie kroki potrzebne do wyprowadzenia wzorów Fresnela na reflektancję i transmitancję wraz z relacją rozpraszania, która wiąże ze sobą radiancję wychodzącą z radiancją padającą poprzez funkcję BSDF. Zaprezentowane zostały również przykładowe funkcje BSDF dla modelowania odbić od powierzchni (czyli funkcje BRDF). Temat funkcji BSDF jest znacznie bardziej obszerny niż zaprezentowano tutaj i więcej informacji na ten temat można znaleźć w cytowanej bibliografii. Niemniej jednak opisane zagadnienia korespondują z tym, co udało się zrealizować w części projektowej.
 
 %\section{Metoda Monte Carlo}
 %\subsection{Przykłady zastosowań}
