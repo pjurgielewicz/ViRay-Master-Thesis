@@ -5,7 +5,7 @@ Dostęp do informacji (również wizualnej) jest motorem napędzającym rozwój 
 
 W następnych dwóch podrozdziałach zostaną przedstawione podstawy, które stoją za działaniem obu wyżej wspomnianych technik. 
 \subsection{Rasteryzacja}
-Proces rasteryzacji w ogólnym rozumieniu polega na transformacji grafiki wektorowej, czyli takiej, która opisywana jest poprzez położenia, kierunki i odległości, do płaskiego obrazu złożonego z określonej ilości pikseli w pionie i poziomie. W przypadku grafiki trójwymiarowej i posługiwania się biblioteką OpenGL~\cite{OPENGL46} czy wchodzącej w skład DirectX biblioteki Direct3D, wejście całego potoku przetwarzania geometrii stanowi zbiór obiektów (przeważnie trójkątów), z których każdy zbudowany jest z wierzchołków. Każdy wierzchołek $\vec{v_i}$ posiada zaś szereg atrybutów takich jak:
+Proces rasteryzacji w ogólnym rozumieniu polega na transformacji grafiki wektorowej, czyli takiej, która opisywana jest poprzez położenia, kierunki i odległości, do płaskiego obrazu złożonego z określonej ilości pikseli w pionie i poziomie wypełniających przestrzeń między tymi położeniami~(wierzchołkami). W przypadku grafiki trójwymiarowej i posługiwania się biblioteką OpenGL~\cite{OPENGL46} czy wchodzącej w skład DirectX biblioteki Direct3D, wejście całego potoku przetwarzania geometrii stanowi zbiór obiektów (przeważnie trójkątów), z których każdy zbudowany jest z wierzchołków. Każdy wierzchołek $\vec{v_i}$ posiada zaś szereg atrybutów takich jak:
 \begin{itemize}
 \item macierz przekształceń 4x4 we współrzędnych obserwatora~(kamery) $\mathbf{MV_i}$ zawierającą informację o jego położeniu, skali, obrocie oraz ewentualnych deformacjach~(np. pochyleniu),
 \item współrzędne tekstury,
@@ -32,7 +32,7 @@ S & 0 & 0 & 0 \\
 \end{bmatrix},\qquad \mathrm{gdzie\ }S = \frac{1}{\tan\frac{\alpha}{2}}.
 \end{equation}
 Wierzchołki przekształcone zgodnie z $\vec{v_{i}}^{'} = \mathbf{P}\cdot\mathbf{MV_i}\cdot \vec{v_i}$ i składające się na jeden prymityw geometryczny są na kolejnych etapach łączone ze sobą tworząc powierzchnię zajmującą określone pozycje pikseli na obrazie. 
-\addimage{chapters/ch1/img/triangle.png}{scale=0.8}{Trójkąt po rasteryzacji. Siatka kwadratów odpowiada niepodzielnej siatce pikseli obrazu, wierzchołki zostały oznaczone czerwonymi punktami i połączone ze sobą, z uwagi na fakt, iż piksele są elementami dyskretnymi, odpowiednie algorytmy muszą zdecydować czy dana płaszczyzna w odpowiednio dużym stopniu zajmuje miejsce odpowiadające danemu pikselowi, w efekcie powstają postrzępione granice obiektów. Dla pikseli znajdujących się wewnątrz (niebieskie) należy dokonać interpolacji atrybutów}{Trójkąt po rasteryzacj}{ch1:img:triangleRaster}
+\addimage{chapters/ch1/img/triangle.png}{scale=0.8}{Trójkąt po rasteryzacji. Siatka kwadratów odpowiada niepodzielnej siatce pikseli obrazu. Wierzchołki zostały oznaczone czerwonymi punktami i połączone ze sobą. Z uwagi na fakt, iż piksele są elementami dyskretnymi, odpowiednie algorytmy muszą zdecydować czy dana płaszczyzna w odpowiednio dużym stopniu zajmuje miejsce odpowiadające danemu pikselowi, w efekcie powstają postrzępione granice obiektów. Dla pikseli znajdujących się wewnątrz (niebieskie) należy dokonać interpolacji atrybutów}{Trójkąt po rasteryzacj}{ch1:img:triangleRaster}
 Jako, że dokładne wartości atrybutów znane są tylko i wyłącznie dla wierzchołków to wewnątrz powierzchni atrybuty te muszą być interpolowane by móc na kolejnych etapach nadać pikselom pożądany kolor zgodny z przyjętym oświetleniem, materiałem i teksturą. Tak obliczone piksele, o ile znajdują się dalej w przestrzeni obserwatora, mogą zostać jeszcze nadpisane przez kolejne powierzchnie. Wykorzystywany jest do tego \textit{bufor głębokości}~(ang. \textit{z-buffer}), którego rozmiar w pikselach odpowiada generowanemu obrazowi, zaś same piksele przechowują informację o aktualnie najbliższym położeniu. Jeśli aktualnie przetwarzany obiekt~(płaszczyzna) dla danego piksela znajduje się bliżej niż wszystko, co do tej pory zostało wyrenderowane, wartość bufora głębokości zostaje nadpisana w tym punkcie przez nową wartość głębi, a piksel obrazu zostanie obliczony na nowo - tym razem biorąc pod uwagę własności tego nowego obiektu. W przeciwnym razie, gdy piksel odpowiadający nowemu obiektowi jest dalej w przestrzeni widoku zostaje on odrzucony. Dzięki czemu nie są przeprowadzane dalsze obliczenia dla elementów, których obserwator i tak nie jest w stanie dostrzec, oszczędzając przy tym czas procesora.
 
 Powyższy opis procesu rasteryzacji, mimo iż znacznie uproszczony w stosunku do wykorzystywanych obecnie potoków przetwarzania~\cite{OPENGL_SUPERBIBLE}, zawiera sedno całej operacji i pozwala wyróżnić kilka jego najważniejszych cech.
@@ -230,9 +230,9 @@ gdzie:
 \item[] $\gamma$ - kąt zawarty między $\vec{n}$ a $\vec{v}$ (kąt odbicia),
 \item[] $\delta$ - kąt zawarty między $\vec{n}$ a $\vec{w}$ (kąt załamania).
 \end{itemize}
-O ile prawo odbicia \eqref{ch1:eq:ReflectionLaw} jest intuicyjnym prawem, znanym z prostych rozważań mechaniki klasycznej (np. odbicie nieobracającego się krążka hokejowego od bandy), o tyle prawo załamania \eqref{ch1:eq:RefractionLaw} zawiera w sobie element $n_w = \frac{n_t}{n_i}$, znany jako względny współczynnik załamania równy ilorazowi współczynnika załamania w nowym materiale $n_t$ i współczynnika załamania materiału, z którego pada promieniowanie $n_i$, którego zachowanie nie wynika wprost z równań Maxwella a z mikroskopowych własności obu materiałów. 
+O ile prawo odbicia \eqref{ch1:eq:ReflectionLaw} jest intuicyjnym prawem, znanym z prostych rozważań mechaniki klasycznej (np. odbicie nieobracającego się krążka hokejowego od bandy), o tyle prawo załamania \eqref{ch1:eq:RefractionLaw} zawiera w sobie element $n_w = \frac{n_t}{n_i}$, znany jako względny współczynnik załamania, równy ilorazowi współczynnika załamania w nowym materiale $n_t$ i współczynnika załamania materiału, z którego pada promieniowanie $n_i$, którego zachowanie nie wynika wprost z równań Maxwella a z mikroskopowych własności obu materiałów. 
 
-Jeżeli dielektryk znajdzie się w polu oddziaływania elektrycznego, w wyniku oddziaływania z tym polem nastąpi redystrybucja ładunku w materiale. Pole to dokona separacji ładunków (para ładunków dodatniego i ujemnego tworzy dipol elektryczny) przez co pole wewnątrz materiału będzie inne niż wymuszające. Powstały moment dipolowy na jednostkę objętości (przy założeniu liniowości i izotropii ośrodka) jest zdefiniowany jako:
+Jeżeli dielektryk znajdzie się w polu oddziaływania elektrycznego, w wyniku oddziaływania z tym polem nastąpi redystrybucja ładunku w materiale. Pole to dokona separacji ładunków (para ładunków dodatniego i ujemnego tworzy dipol elektryczny), przez co pole wewnątrz materiału będzie inne niż wymuszające. Powstały moment dipolowy na jednostkę objętości (przy założeniu liniowości i izotropii ośrodka) jest zdefiniowany jako:
 \begin{equation}
 \vec{P} = (\epsilon - \epsilon_0)\vec{E}
 \label{ch1:eq:PolarizationVec}
@@ -255,11 +255,11 @@ m_e\frac{\mathrm{d^2}x}{\mathrm{d}t^2} = F_E(t) - k_ex = q_eE_0\cos\omega t - m_
 \end{equation}
 którego rozwiązanie jest następujące:
 \begin{equation}
-x(t) = \frac{q_e}{m_e}\frac{1}{\omega_0^2 - \omega^2 }E(t)
+x(t) = \frac{q_e}{m_e}\frac{1}{\omega_0^2 - \omega^2 }E(t).
 \end{equation}
 Podstawienie powyższego wyniku do równania \eqref{ch1:eq:RelativeEpsilon} daje wzór na względny współczynnik przenikalności elektrycznej:
 \begin{equation}
-\epsilon_r = \epsilon_r(\omega) = 1 + \frac{Nq_e^2}{\epsilon_0m_e}\frac{1}{\omega_0^2 - \omega^2}
+\epsilon_r = \epsilon_r(\omega) = 1 + \frac{Nq_e^2}{\epsilon_0m_e}\frac{1}{\omega_0^2 - \omega^2}.
 \label{ch1:eq:GeneralRelativeEpsilon}
 \end{equation}
 Wielkość ta wiąże się z prędkością światła w danym ośrodku poprzez tzw. \textit{współczynnik załamania} $n$\footnote{Zastosowane przybliżenie $\mu_r\approx 1$ wiąże się z faktem, że wiele przezroczystych materiałów w zakresie widzialnym ma przenikalność magnetyczną niewiele różniącą się od przenikalności magnetycznej próżni.}
@@ -495,14 +495,14 @@ f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i}) = \frac{\mathrm{d}L_o(\vec{p}, \vec
 Aby BSDF uznać za realistyczne tzn. zgodne z podstawowymi zjawiskami fizycznymi musi ona spełniać kilka warunków:
 \begin{enumerate}
 \item Jest nieujemna dla dowolnej kombinacji parametrów.
-\item Nie może wprowadzać dodatkowej energii do układu:
+\item Nie może wprowadzać dodatkowej energii do układu tzn.:
 \begin{equation}
 \forall_{\vec{p}, \vec{\omega_o}}: \int_{\mathcal{S}^2}f_s(\vec{p}, \vec{\omega_o}, \vec{\omega'})\cos\theta'\mathrm{d}\vec{\omega'} \leq 1,
 \end{equation}
 gdzie całkowanie odbywa się po sferze wokół punktu $\vec{p}$.
 \item Jeżeli BSDF opisuje procesy odbicia~(ang. \textit{bidirectional reflectance distribution function}, BRDF) musi ona spełniać relację odwracalność biegu promieni~(tzw. \textit{zasada Helmholtza}):
 \begin{equation}
-f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i}) = f_s(\vec{p}, \vec{\omega_i}, \vec{\omega_o})
+f_s(\vec{p}, \vec{\omega_o}, \vec{\omega_i}) = f_s(\vec{p}, \vec{\omega_i}, \vec{\omega_o}).
 \end{equation}
 \end{enumerate}
 Równanie opisujące wpływ rozkładu radiancji padającej na rozkład po rozproszeniu jest kluczem do generowania realistycznej grafiki komputerowej i nazywane jest \textit{relacją rozpraszania}~(ang. \textit{scattering equation}):
@@ -515,7 +515,7 @@ L_o(\vec{p}, \vec{\omega_o}) = \int_{\mathcal{S}^2}f_s(\vec{p}, \vec{\omega_o}, 
 \subsection{Modelowanie materiałów}
 Wprowadzona w poprzednim podrozdziale funkcja BSDF~\eqref{ch1:eq:bsdfGeneral} jest tylko ogólnym wyrażeniem relacji między radiancją padającą a rozproszoną. Najogólniejsze podejście wymagałoby analizowania interakcji światła z atomami, na które ono pada. Podejście to jest na tyle nieefektywne, że przez ostatnie dekady powstały dziesiątki propozycji modeli opartych na różnych założeniach, a przez to dostosowanych do pewnego podzbioru występujących w rzeczywistości powierzchni. 
 
-Znakomita część modeli operuje zbiorem kilku intuicyjnych parametrów, które mogą odwoływać się np. do szorstkości, siły rozbłysku czy anizotropii występującej w materiale. Odpowiedni dobór tego typu modelu oraz jego parametrów w wielu przypadkach pozwala uzyskiwać przekonywujące rezultaty i to dlatego są one najchętniej i najczęściej wykorzystywane (są też atrakcyjne pod względem złożoności obliczeń). Po drugiej stronie znajdują się złożone modele teoretyczne i eksperymentalne BSDF, których celem jest perfekcyjne oddanie tego, w jaki sposób dany materiał się zachowuje. W przypadku modeli teoretycznych wiąże się to z koniecznością operowania wieloma parametrami, których znaczenie i wpływ na wygląd powierzchni może być niejasne. Eksperymentalne BSDF zaś wymagają pomiaru własności powierzchni z użyciem odpowiedniej aparatury - jest to czasochłonne a uzyskane BSDF nadają się tylko do wykorzystania z konkretnym materiałem~\cite{Montes12anoverview}.
+Znakomita część modeli operuje zbiorem kilku intuicyjnych parametrów, które mogą odwoływać się np. do szorstkości, siły rozbłysku czy anizotropii występującej w materiale. Odpowiedni dobór tego typu modelu oraz jego parametrów w wielu przypadkach pozwala uzyskiwać przekonywujące rezultaty i to dlatego są one najchętniej i najczęściej wykorzystywane (są też atrakcyjne pod względem złożoności obliczeń). Po drugiej stronie znajdują się złożone modele teoretyczne i eksperymentalne BSDF, których celem jest perfekcyjne oddanie tego, w jaki sposób dany materiał się zachowuje. W przypadku modeli teoretycznych wiąże się to z koniecznością operowania wieloma parametrami, których znaczenie i wpływ na wygląd powierzchni może być niejasne. Eksperymentalne BSDF zaś wymagają pomiaru własności powierzchni z użyciem odpowiedniej aparatury - jest to czasochłonne, a uzyskane BSDF nadają się tylko do wykorzystania z konkretnym materiałem~\cite{Montes12anoverview}.
 
 Wspomniano już wcześniej, że jednym z przypadków BSDF są BRDF, których zadaniem jest symulacja zjawisk odbicia. Odbicie w rzeczywistych materiałach jest wypadkową różnych mechanizmów (rysunek \ref{ch1:img:Reflection_terms}), których efekty można opisać jako:
 \begin{itemize}
@@ -608,7 +608,7 @@ Oba te modele mają tę wadę, że są modelami empirycznymi tzn. nie biorą pod
 \end{align}
 Stąd uwzględniając stałą normalizacyjną $c$ właściwa postać BSDF dla modelu Phonga i Blinna-Phonga ma postać:
 \begin{equation}
-f_s(\vec{p}, \alpha; e) = k_s(\vec{p})\frac{e + 2}{2\pi}\cos^e\alpha
+f_s(\vec{p}, \alpha; e) = k_s(\vec{p})\frac{e + 2}{2\pi}\cos^e\alpha.
 \label{ch1:eq:PhongBRDFNormalized}
 \end{equation}
 
