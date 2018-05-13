@@ -20,7 +20,7 @@ Ważnym globalnym parametrem jest również \textit{macierz projekcji} $\mathbf{
 \item odległości od obserwatora bliskiej \textit{n} oraz dalekiej \textit{f} płaszczyzny odcięcia,
 \item kąta rozwarcia stożka widoczności $\mathrm{\alpha}$
 \end{itemize}
-\addimage{chapters/ch1/img/perspective_projection2.png}{scale=0.33}{Rzut z góry na stożek widoczności z pozycji obserwatora $O$. Tylko obiekty wewnątrz stożka opisanego parametrami $n$, $f$, oraz $\alpha$ zostaną narysowane całkowicie, te na brzegach będą wygenerowane częściowo}{Rzut z góry na stożek widoczności z pozycji obserwatora $O$}{ch1:img:perspectiveMatrix}
+\addimage{chapters/ch1/img/perspective_projection2.png}{scale=0.33}{Rzut z góry na stożek widoczności z pozycji obserwatora $O$. Tylko obiekty wewnątrz stożka opisanego parametrami $n$, $f$, oraz $\alpha$ zostaną narysowane całkowicie, te na brzegach będą wygenerowane częściowo}{Stożek widoczności z pozycji obserwatora}{ch1:img:perspectiveMatrix}
 i wygląda następująco:
 \begin{equation}
 P = 
@@ -637,7 +637,7 @@ G(\vec{\omega_o}, \vec{\omega_i}) = \min\left\lbrace 1, \frac{2(\vec{n}\cdot\vec
 \end{equation}
 \item[] $F_r(\vec{\omega_o})$ - współczynnik odbicia obliczony zgodnie z wyprowadzonymi wzorami na współczynniki Fresnela \eqref{ch1:eq:RPerp_general}-\eqref{ch1:eq:RParallel_conductor}~(kąt padania $\theta_h$ mierzony jest między $\vec{\omega_o}$ a $\vec{\omega_h}$). 
 \end{itemize}
-\section{Podsumowanie}
+\section*{Podsumowanie}
 Celem tego rozdziału było pokazanie podstawowych praw fizyki rządzących transportem światła pomiędzy obiektami. Szczególnie istotne były wszystkie kroki potrzebne do wyprowadzenia wzorów Fresnela na reflektancję i transmitancję wraz z relacją rozpraszania, która wiąże ze sobą radiancję wychodzącą z radiancją padającą poprzez funkcję BSDF. Zaprezentowane zostały również przykładowe funkcje BSDF dla modelowania odbić od powierzchni (czyli funkcje BRDF). Temat funkcji BSDF jest znacznie bardziej obszerny niż zaprezentowano tutaj i więcej informacji na ten temat można znaleźć w cytowanej bibliografii. Niemniej jednak opisane zagadnienia korespondują z tym, co udało się zrealizować w części projektowej.
 
 %\section{Metoda Monte Carlo}

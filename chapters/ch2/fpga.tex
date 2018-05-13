@@ -59,10 +59,33 @@ Kluczem do stworzenia narzędzia HLS, które stanie się chętnie wykorzystywane
 \item Bazowanie na dobrze znanym języku programowania jak np. C, tak aby wprowadzić jak najmniejszą ilość restrykcji w jego składni, które mogłyby stanowić ograniczenia w zakresie tworzenia funkcjonalności.
 \item Dostarczenie odpowiednich rozszerzeń do języka bazowego, które udostępniałyby dostęp do optymalizacji wynikających wprost z możliwości używanego sprzętu.
 \end{enumerate}
-Narzędziem, które spełnia oba te założenia jest rozwijany przez firmę Xilinx (twórców pierwszego układu FPGA XC2064) Vivado HLS wchodzący w skład pakietu do tworzenia funkcjonalności w oparciu o układy FPGA tego producenta: Vivado Design Suite{\color{red}CYTOWANIE}. Vivado HLS na podstawie kodu C/C++\footnote{Możliwe jest również wykorzystanie SystemC oraz OpenCL~(Open Computing Language).} oraz informacji o żądanych przez użytkownika optymalizacjach, mających głównie na celu zwiększenie wydajności przetwarzania danych przez algorytm, dokonuje syntezy projektu do jego reprezentacji w VHDL i Verilog. Końcowym produktem syntezy jest \textit{moduł IP}~(ang. \textit{Intellectual Property core}), który może stać się częścią systemu przetwarzania danych za pomocą układu FPGA firmy Xilinx.
+Narzędziem, które spełnia oba te założenia jest rozwijany przez firmę Xilinx (twórców pierwszego układu FPGA XC2064) Vivado HLS wchodzący w skład pakietu do tworzenia funkcjonalności w oparciu o układy FPGA tego producenta: Vivado Design Suite. Vivado HLS na podstawie kodu C/C++\footnote{Możliwe jest również wykorzystanie SystemC oraz OpenCL~(Open Computing Language).} oraz informacji o żądanych przez użytkownika optymalizacjach, mających głównie na celu zwiększenie wydajności przetwarzania danych przez algorytm, dokonuje syntezy projektu do jego reprezentacji w VHDL i Verilog. Końcowym produktem syntezy jest \textit{moduł IP}~(ang. \textit{Intellectual Property core}), który może stać się częścią systemu przetwarzania danych za pomocą układu FPGA firmy Xilinx.
+
+\subsection{Vivado HLS w opracowaniach}
+Od momentu udostępnienia użytkownikom, Vivado HLS stał się obiektem zainteresowania środowisk akademickich i inżynierskich chcących zbadać przede wszystkim poprawność syntezy kodu C/C++ oraz jakość generowanego opisu RTL w porównaniu do metod tradycyjnych. W opracowaniu~\cite{C_VERILOG} autorzy dokonali sprawdzenia równoważności wielu algorytmów pomiędzy kodem C a uzyskanym na jego podstawie RTL. Ponadto dostrzegli, iż badane narzędzie dokonuje wielu nietrywialnych optymalizacji, wśród których wymienić można:
+\begin{itemize}
+\item Wykrywanie propagacji oraz zwijanie wyrażeń zawierających stałe np.  
+\begin{lstlisting}
+...
+int x = 2;
+int y = x * 4 / 5 + fun(i);
+\end{lstlisting}
+zostanie zoptymalizowane do postaci:
+\begin{lstlisting}
+...
+int y = 1 + fun(i);
+\end{lstlisting}
+\item Usuwanie wykonania operacji, które nie mają wpływu na wynik działania funkcji.
+\item Przenoszenie kodu niezależnego od iteracji pętli poza jej ciało.
+\end{itemize}
+Inni autorzy dokonali za to szczegółowych studiów przypadków implementacji często wykorzystywanych algorytmów za pomocą Vivado HLS. W publikacji~\cite{HLS_HDL_GRID} udowodniono poprawność stworzonego i zoptymalizowanego RTL, realizującego synchronizację w trójfazowych przekaźnikach mocy. Porównano jego wydajność i użycie zasobów względem znanego wcześniej projektu zapisanego bezpośrednio z użyciem VHDL\footnote{Różnica między nimi polegała na wykorzystaniu innej reprezentacji liczbowej - projekt Vivado HLS używał liczb zmienno-, a VHDL stałopozycyjnych.}. Projekt stworzony z użyciem nowego narzędzia był o ok. 10\% szybszy niż jego pierwowzór, jednak utylizacja zasobów była nawet dwukrotnie większa. Przydatność poszczególnych dyrektyw optymalizacyjnych udostępnianych przez Vivado HLS oraz problemy wynikające z natury analizowanych algorytmów a wpływające na stosowalność tych optymalizacji została omówiona w~\cite{VHLS_ESD}. Z kolei rozprawa~\cite{HLS_HDL_MATRIX} koncentruje się na analizie implementacji mnożenia macierzy za pomocą trzech różnych algorytmów. Autorzy pokazują w niej, jak poszczególne optymalizacje wpływają zarówno na czas wykonania jak i na wykorzystanie zasobów logicznych układu FPGA i porównują te metryki z tymi, które odpowiadają ich w pełni zoptymalizowanym wersjom stworzonym przez doświadczonych projektantów w HDL. Okazuje się, że w każdym przypadku najszybsza wersja opisana za pomocą Vivado HLS była wyraźnie wolniejsza i niemal w każdym przypadku wykorzystywała więcej zasobów docelowego układu FPGA.
+
+Oprócz prac porównawczych, istnieją również dokumenty opisujące nietrywialne techniki optymalizacji, głównie związane z problemami występującymi w momencie konieczności iteracyjnego przetwarzania danych w pętlach~\cite{LOOP_PARALLELIZATION}\cite{HLS_HDL_MATRIX}. Pokazują one wprost, w jaki sposób można radzić sobie z tego typu wyzwaniami z użyciem Vivado HLS.
+
+Chociaż autorzy przytoczonych publikacji są zgodni, co do tego, iż pomimo zastosowania odpowiednich optymalizacji kodu, otrzymane projekty nie oferują bezwzględnie maksymalnej wydajności z niewspółmiernie dużą utylizacją bloków logicznych, nadal jednak użycie Vivado HLS jest uzasadnione w przypadku braku specjalistycznej wiedzy związanej z językami opisu sprzętu. Narzędzie to pozwala również osiągnąć satysfakcjonujące rezultaty, wymagającego średnio ok. 3-krotnie mniejszego nakładu pracy względem rozwiązania tworzonego bezpośrednio w HDL przez doświadczonego projektanta.
 
 \subsection{Podstawowe informacje związane z Vivado HLS}
-Firma Xilinx udostępniając użytkownikom swoich rozwiązań technologicznych Vivado HLS ułatwiła pracę projektantów/programistów. Tworzenie algorytmu za pomocą języka C/C++ jest nie tylko łatwiejsze niż tworzenie opisu RTL, ale również powstający kod jest w zamierzeniu znacznie bardziej czytelny. Co więcej, testowanie przygotowywanych algorytmów odbywa się również w środowisku C/C++, a co za tym idzie można wykorzystywać tradycyjne narzędzia do sprawdzania funkcjonalnej poprawności~(\textit{debugowania}) algorytmów na dowolnym etapie. Na dodatek Vivado HLS bierze pod uwagę, dla jakiego konkretnego układu FPGA firmy Xilinx przeprowadzana jest synteza oraz przy jakiej częstotliwości pracy. Dzięki temu narzędzie to na podstawie znanej mu szybkości wykonywania operacji dla danego FPGA dokonuje oceny, które operacje mogą zostać wykonane w tym samym cyklu zegara, a które muszą zostać rozłożone na kilka takich cykli - bardziej zaawansowane technologicznie układy będą w stanie wykonać dany algorytm szybciej i/lub z użyciem mniejszej liczby zasobów sprzętowych\footnote{Oczywistą ceną za dostęp do tego typu optymalizacji jest ograniczenie stosowalności Vivado HLS tylko do układów wyprodukowanych przez firmę Xilinx.}.
+Firma Xilinx udostępniając użytkownikom swoich rozwiązań technologicznych Vivado HLS ułatwiła zadanie początkującym projektantom/programistom. Tworzenie algorytmu za pomocą języka C/C++ jest nie tylko łatwiejsze niż tworzenie opisu RTL, ale również powstający kod jest w zamierzeniu znacznie bardziej czytelny. Co więcej, testowanie przygotowywanych algorytmów odbywa się również w środowisku C/C++, a co za tym idzie można wykorzystywać tradycyjne narzędzia do sprawdzania funkcjonalnej poprawności~(\textit{debugowania}) algorytmów na dowolnym etapie. Na dodatek Vivado HLS bierze pod uwagę, dla jakiego konkretnego układu FPGA firmy Xilinx przeprowadzana jest synteza oraz przy jakiej częstotliwości pracy. Dzięki temu narzędzie to na podstawie znanej mu szybkości wykonywania operacji dla danego FPGA dokonuje oceny, które operacje mogą zostać wykonane w tym samym cyklu zegara, a które muszą zostać rozłożone na kilka takich cykli - bardziej zaawansowane technologicznie układy będą w stanie wykonać dany algorytm szybciej i/lub z użyciem mniejszej liczby zasobów sprzętowych\footnote{Oczywistą ceną za dostęp do tego typu optymalizacji jest ograniczenie stosowalności Vivado HLS tylko do układów wyprodukowanych przez firmę Xilinx.}.
 
 Atrakcyjność rozwiązania jakim jest Vivado HLS polega głównie na tym, że na pierwszy rzut oka jego składnia niewiele różni się od tej znanej z języków C/C++. Należy stworzyć funkcję główną, która zazwyczaj będzie przyjmować pewien zbiór argumentów oraz zwracać wyniki na zewnątrz modułu~(argumenty te na drodze syntezy staną się portami wejścia/wyjścia tworzonego IP). Funkcja główna będzie realizować pewien algorytm wykorzystując odpowiednie konstrukcje wynikające ze składni języka bazowego i może się odwoływać do innych funkcji pomocniczych. W rzeczywistości Vivado HLS implementuje dużą część standardowych konstrukcji języków C/C++ oraz typów danych, jednak istnieją pewne ograniczenia, wśród których najważniejsze to\footnote{Spisane tutaj ograniczenia mają zastosowanie tylko i wyłącznie do ciała funkcji głównej i wszystkich funkcji wywoływanych przez nią, która zostaje poddana syntezie do RTL. W środowisku testowym ograniczenia te nie występują. }{\color{red}ODNOSNIKI}:
 \begin{itemize}
@@ -109,24 +132,26 @@ Jeśli tylko stworzony moduł jest zgodny z obowiązującą składnią HLS, narz
 Przemyślany zapis algorytmiczny rozwiązywanego problemu w połączeniu z kombinacją odpowiednich dyrektyw i analizą raportów syntezy pozwala stworzyć moduł IP o optymalnych metrykach, które uzasadniałyby wykorzystanie układu FPGA i jednocześnie, na podstawie użycia zasobów, wskazywałyby na możliwość implementacji w układzie. Należy jednak podkreślić, że Vivado HLS jedynie dokonuje transformacji algorytmu do jego reprezentacji poprzez RTL i przez to nie daje gwarancji, że proces implementacji (przeprowadzany przez odrębne narzędzie) zakończy się sukcesem tj. wygenerowaniem pliku konfiguracyjnego działającego układu.
 
 \subsection{Wykorzystanie dyrektyw}
-Dyrektywy w Vivado HLS zmieniające domyślne parametry syntezy mają zastosowanie do:
+Dyrektywy w Vivado HLS zmieniające domyślne parametry syntezy, a przez to wpływające na sposób implementacji na poziomie RTL, mają zastosowanie do:
 \begin{itemize}
-\item portów wejścia/wyjścia z głównej funkcji modułu,
+\item portów wejścia/wyjścia funkcji głównej modułu,
 \item funkcji,
 \item pętli,
-\item regionów, czyli porcji kodu zawartej pomiędzy parą odpowiadających sobie nawiasów klamrowych,
+\item regionów, czyli bloku kodu zawartego pomiędzy parą odpowiadających sobie nawiasów klamrowych,
 \item tablic
 \end{itemize}
 i mogą zostać zapisane bezpośrednio w kodzie programu w postaci:
 \begin{lstlisting}
 #pragma HLS <DYREKTYWA> <PARAMETRY_DYREKTYWY>
 \end{lstlisting}
-jak i w oddzielnym pliku \texttt{directives.tcl}. Nie ma przy tym znaczenia z punktu widzenia syntezy, który sposób definiowania dyrektyw zostanie przyjęty przez programistę~(można nawet mieszać ze sobą oba sposoby). Należy tylko mieć na uwadze, że dyrektywy zapisane w kodzie mogą sprawiać problemy~(tzn. niepożądane optymalizacje), gdy dany kod jest współużytkowany przez kilka osób i w różnych projektach.
+jak i w oddzielnym pliku \texttt{directives.tcl}. Nie ma przy tym znaczenia z punktu widzenia syntezy, który sposób definiowania dyrektyw zostanie przyjęty przez programistę~(można nawet mieszać ze sobą oba sposoby). Należy tylko mieć na uwadze, że dyrektywy zapisane w kodzie mogą sprawiać problemy~(tzn. wywołać niepożądane optymalizacje), gdy dany kod jest współużytkowany przez kilka osób i w różnych projektach.
+
+Poniższe zestawienie dyrektyw obejmuje tylko część z nich, z zaznaczeniem najważniejszych ich cech, które wywierają największy wpływ na optymalizację algorytmu poddanego syntezie HLS. Więcej informacji na temat dyrektyw można odnaleźć w podręczniku użytkownika HLS~\cite{UG902}.
 
 \begin{itemize}
 \item \texttt{INTERFACE}
 
-Projekty opisywane poprzez HDL, w celu wykonywania operacji wejścia/wyjścia, wymagają posiadania tzw. portów, które działają zazwyczaj w oparciu o pewien protokół transmisji danych, który można zdefiniować używając dyrektywy \texttt{INTERFACE}. W zależności od typu danych~(pojedyncza wartość, tablica, wskaźnik) oraz sposobu dostępu~(wejście, wyjście, wejście/wyjście) Vivado HLS udostępnia odpowiednie protokoły transmisji. Ich dokładna dyskusja znajduje się w~\cite{UG902} w rozdziale \textit{Managing Interfaces} tutaj wspomniane zostaną dwa z nich.
+Projekty opisywane poprzez HDL, w celu wykonywania operacji wejścia/wyjścia, wymagają posiadania tzw. portów, które działają zazwyczaj w oparciu o pewien protokół transmisji danych, który można zdefiniować używając dyrektywy \texttt{INTERFACE}. W zależności od typu danych~(pojedyncza wartość, tablica, wskaźnik) oraz sposobu dostępu~(wejście, wyjście, wejście/wyjście) Vivado HLS udostępnia odpowiednie protokoły transmisji - tutaj wspomniane zostaną dwa z nich.
 \begin{itemize}
 \item \texttt{AXI4-Lite} jest interfejsem, który pozwala na to, aby moduł mógł być kontrolowany poprzez CPU lub mikrokontroler. Dzięki niemu jeden interfejs może zostać wykorzystany do połączenia w grupę kilku portów~(mogą to być wartości, wskaźniki, tablice), które mogą w następstwie syntezy być kontrolowane przy pomocy stworzonego sterownika~(ang. \textit{C driver}). 
 \begin{lstlisting}[caption=Przykład użycia interfejsu AXI4-Lite]
@@ -203,7 +228,7 @@ Jeśli funkcja lub pętla, którą użytkownik zamierza zoptymalizować stosują
 
 \item \texttt{ARRAY\_PARTITION}
 
-Efektywność zastosowania dyrektywy \texttt{PIPELINE} do danej funkcji czy pętli okazuje się być często ograniczona poprzez intensywny dostęp do pamięci, w której zapisane są tablice danych. Gdy dany algorytm próbuje odwoływać się do tej samej tablicy więcej niż 2 razy należy się zastanowić nad przeprojektowaniem algorytmu stanowiącego ograniczenia, gdyż układy BRAM implementujące funkcjonalność tablic umożliwiają wykonanie do dwóch operacji zapisu/odczytu danych w pojedynczym cyklu zegara. W przypadku gdy taka zmiana nie jest możliwa można się posłużyć dyrektywą \texttt{ARRAY\_PARTITION} do podziału tablicy stanowiącej ograniczenie przepustowości. Można tego dokonać na 3 sposoby zilustrowane poniższym schematem - wybór optymalnej wersji zależy od wzoru dostępu do danych znajdujących się w partycjonowanej tablicy.
+Efektywność zastosowania dyrektywy \texttt{PIPELINE} do danej funkcji czy pętli okazuje się być często ograniczona poprzez intensywny dostęp do pamięci, w której zapisane są tablice danych. Gdy dany algorytm próbuje odwoływać się do tej samej tablicy więcej niż dwukrotnie w tym samym cyklu zegara należy się zastanowić nad przeprojektowaniem algorytmu stanowiącego ograniczenia, gdyż układy BRAM implementujące funkcjonalność tablic umożliwiają wykonanie do dwóch operacji zapisu/odczytu danych w pojedynczym cyklu zegara. W przypadku gdy taka zmiana nie jest możliwa można się posłużyć dyrektywą \texttt{ARRAY\_PARTITION} do podziału tablicy stanowiącej ograniczenie przepustowości. Można tego dokonać na 3 sposoby zilustrowane poniższym schematem - wybór optymalnej wersji zależy od wzoru dostępu do danych znajdujących się w partycjonowanej tablicy.
 \addimage{chapters/ch2/img/array_partition.png}{scale=0.6}{Sposoby podziału tablicy na mniejsze elementy. W przypadku a) pierwotna tablica zostaje podzielona na $f=2$ równych elementów - pierwsza otrzymuje elementy o mniejszych, a druga o większych indeksach~(podział blokowy ang. \textit{block}). Przykład b) rozmieszcza co $f=2$ element pierwotnej tablicy w mniejszych tablicach~(podział cykliczny ang. \textit{cyclic}). Przykład c) odpowiada rozbiciu tablicy na poszczególne rejestry~(podział całkowity ang. \textit{complete})}{Sposoby podziału tablicy na mniejsze elementy}{ch2:img:array_partition}
 
 \item \texttt{UNROLL}
@@ -213,20 +238,130 @@ Domyślne parametry Vivado HLS dokonują syntezy pętli w taki sposób, że istn
 \item dokonanie częściowego rozwinięcia pętli, które dokona $f$-krotnej replikacji logiki odpowiedzialnej za ciało pętli,
 \item pełne rozwinięcie wszystkich $n$ iteracji pętli (ilość iteracji musi być znana w momencie kompilacji kodu).  
 \end{itemize}
-W obu przypadkach rozwinięcia pętli, wszystkie zreplikowane bloki będą przetwarzać dane jednocześnie dla maksymalnej wydajności (o ile nie występują ograniczenia związane z dostępem do tablic oraz nie istnieją zależności pomiędzy wartościami występującymi w różnych iteracjach) kosztem zwiększonej konsumpcji zasobów. Należy pamiętać, że pełne rozwinięcie pętli jest narzucane automatycznie w przypadku, gdy funkcja bądź pętla nadrzędna zostanie poddana działaniu dyrektywy \texttt{PIPELINE}. Jeśli ilość iteracji (a przez to ilość zreplikowanych bloków) nie będzie znana w momencie kompilacji proces optymalizacji tego kodu zakończy się niepowodzeniem.
+W obu przypadkach rozwinięcia pętli, wszystkie zreplikowane bloki będą przetwarzać dane jednocześnie dla maksymalnej wydajności (o ile nie występują ograniczenia związane z dostępem do tablic oraz nie istnieją zależności pomiędzy wartościami występującymi w różnych iteracjach) kosztem zwiększonej konsumpcji zasobów. Należy pamiętać, że pełne rozwinięcie pętli jest narzucane automatycznie w przypadku, gdy funkcja bądź pętla nadrzędna zostanie poddana działaniu dyrektywy \texttt{PIPELINE}. Jeśli ilość iteracji (a przez to ilość zreplikowanych bloków) nie będzie znana w momencie kompilacji, proces optymalizacji tego kodu zakończy się niepowodzeniem.
 
 \item \texttt{DATAFLOW}
 
+Załóżmy, że w kodzie poddawanym syntezie HLS udaje się wyodrębnić następującą sekwencję przetwarzania:
+\begin{lstlisting}[caption=Blok kodu mogący zostać poddany optymalizacji DATAFLOW]
+int fun(int in)
+{
+//#pragma HLS DATAFLOW
+	...
+	fun_A(in, res1);
+	fun_B(res1, res2);
+	
+	return res2;
+}
+\end{lstlisting}
+Funkcja nadrzędna przyjmuje pewien parametr wejściowy \texttt{in}, który jest parametrem wejściowym do \texttt{fun\_A()}. Wynikiem działania \texttt{fun\_A()} jest wartość \texttt{res1}, która staje się parametrem wejściowym do \texttt{fun\_B()} - wynik jej działania, \texttt{res2},  zostaje zwrócony przez ciało funkcji nadrzędnej \texttt{fun()}. Tego typu sekwencyjne przetwarzanie danych, gdzie efekt działania jednej z funkcji~(zadania) jest parametrem wejściowym kolejnej z nich, jest kandydatem do zastosowania dyrektywy \texttt{DATAFLOW}. Optymalizacja ta podobnie jak \texttt{PIPELINE} umożliwia zwiększenie wydajności algorytmu w układzie FPGA poprzez równoległe działanie wielu zadań jednocześnie - dzieje się to jednakże w oparciu o kanały transmisji danych między zadaniami.
 
-\item \texttt{LOOP\_MERGE}
+Użycie \texttt{DATAFLOW}~(dla funkcji i pętli) powoduje, iż pomiędzy poszczególnymi zadaniami w sekwencji tworzone są kanały buforujące dane. Te zaś w zależności od typu danych, będą implementowane jako kolejki typu \textit{FIFO}~(ang. \textit{first in, first out}) dla danych skalarnych, albo jako bufory typu \textit{ping-pong} dla danych tablicowych\footnote{Na bufor tego typu składają się dwa bufory o identycznym rozmiarze. Kiedy jeden z nich służy do odczytu danych, do drugiego dane są zapisywane. W momencie, gdy bufor, z którego były czytane dane zostaje opróżniony, role buforów ulegają zmianie.}. Każde zadanie w sekwencji działa indywidualnie, jednak jest uzależnione od tego, czy bufory dostarczające do niego dane są niepuste. Takie zachowanie pozwala potencjalnie na efektywniejsze zrównoleglenie zadań względem \texttt{PIPELINE}, które statycznie dokonuje szeregowania wykonania operacji, jednak za cenę większego zużycia zasobów związanego z implementacją wymaganych buforów. 
 
+\addimage{chapters/ch2/img/dataflow.png}{scale=0.5}{Schemat działania \texttt{DATAFLOW}. Pomiędzy dwoma zadaniami \texttt{fun\_A()} i \texttt{fun\_B()} zostaje stworzony kanał przepływu danych, dzięki któremu wartości reprezentowane przez \texttt{res1} są odpowiednio buforowane i przekazywane jako argument wejściowy kolejnego zadania. Działanie \texttt{fun\_B()} rozpocznie się, gdy dane w buforze wejściowym staną się dostępne - od tej pory oba przedstawione zadania będą pracować jednocześnie}{Schemat działania \texttt{DATAFLOW}}{ch2:img:dataflow}
 
-\item \texttt{INLINE}
-\item \texttt{DEPENEDENCE}
+Dokonując optymalizacji \texttt{DATAFLOW} na danej funkcji lub pętli należy mieć na uwadze pewne obostrzenia związane z jej zastosowaniem:
+\begin{itemize}
+\item Dane wytworzone przez jedno z zadań mogą stanowić parametr wejściowy tylko jednego następnego zadania w sekwencji.
+\item Efekt działania danego zadania nie może zostać użyty w kolejnej iteracji przez zadanie, wykonujące się przed nim - sprzężenie~(ang. \textit{feedback}) pomiędzy kolejnymi iteracjami jest nieobsługiwane. 
+\item Wykonanie zadania z sekwencji nie może być w żaden sposób warunkowane.
+\item Pętle wchodzące w skład sekwencji mogą mieć tylko jeden warunek kończący ich działanie.
 \end{itemize}
 
-\subsection{Dobór układu w projekcie}
+\item \texttt{DEPENEDENCE}
 
-\section{Sytnteza układu oraz implementacja w FPGA}
-\subsection{Vivado IP Integrator \& Processor Options}
+Zadanie, jakie jest postawione przed Vivado HLS polega na odtworzeniu funkcjonalności opisanej poprzez algorytm za pomocą RTL w sposób, który nie narusza jego integralności tzn. dla dowolnego zbioru parametrów wejściowych moduł zaimplementowany w układzie FPGA musi dawać identyczne wyniki jak jego odpowiednik opisany kodem C/C++ uruchomiony na CPU. Z tego powodu wykrywane są zależności pomiędzy operacjami, które zachowują oryginalny ciąg przyczynowo-skutkowy. Zachowanie to w szczególności może powodować, iż przepustowość pętli z dyrektywą \texttt{PIPELINE} określona przez jej interwał, zostanie ograniczona przez zależności występujące pomiędzy kolejnymi iteracjami.
+
+\begin{lstlisting}[caption=Zależność interwału pętli od występujących zależności pomiędzy kolejnymi iteracjami]
+...
+for(int i = 0; i < N - 1; ++i)
+{
+#pragma HLS PIPELINE
+	float a = tab[i] + tab[i + 1];
+	float b = sqrt(a);
+	tab[i + 1] = b;
+	
+}
+\end{lstlisting}
+W przypadku takim, jak powyżej pętla nie jest w stanie przetworzyć danych z maksymalną przepustowością~(II=1) ponieważ efekt działania kolejnej operacji zależy od czasu obliczenia \texttt{b}, które przypisywane jest do \texttt{tab[i + 1]}~(\texttt{tab[i]} w kolejnej iteracji). 
+
+Istnieją jednak pewne sytuacje, gdy dbanie przez HLS o zapewnienie poprawności działania jest niepożądane i prowadzić będzie do zbyt dużego ograniczenia szybkości obliczeń. Takim przykładem może być na przykład próba implementacji w HLS procesora sterowanego listą rozkazów. W dużym uproszczeniu procesor taki przetwarza po kolei listę instrukcji, zaś każda instrukcja dokonuje pewnych operacji na rejestrach~(zmiennych). 
+
+\begin{lstlisting}[caption=Ilustracja problemu związanego z wykrywaniem zależności przez Vivado HLS i wpływu na wydajność]
+while(true)
+{
+#pragma HLS PIPELINE
+	...
+	switch(inst)
+	{
+		case ADD:
+			reg = reg + 1;
+			break;
+		case NEG:
+			reg = -reg;
+			break;
+		case SQRT:
+			reg = sqrt(reg);
+			break;
+		default:
+			break;
+	}
+}
+\end{lstlisting}
+W powyższym przykładzie HLS dokonując analizy zależności pomiędzy wykorzystaniem \texttt{reg} założy konserwatywnie, że interwał przetwarzania instrukcji będzie określony poprzez instrukcję wykonującą się najdłużej~(tutaj jest to \texttt{sqrt()}), gdyż tylko wtedy istnieje pewność, że moduł będzie wykonywał się w sposób poprawny. Prowadzi to do sytuacji, że nawet instrukcja pusta~(realizowana przez \texttt{default}) będzie wykonywana tak długo jak \texttt{sqrt()}, co w jawny sposób ogranicza szybkość przetwarzania. Dyrektywa \texttt{DEPENDENCE} w założeniu pozwoli wymusić, by rozważanie zależności zostało w przypadku zmiennej \texttt{reg} pominięte\footnote{Stosując tę dyrektywę należy mieć pewność, że nie narusza to integralności algorytmu albo projektant jest w stanie poradzić sobie z ubocznymi konsekwencjami jej użycia.}.
+
+\item \texttt{ALLOCATION}
+
+Poszukiwanie najwydajniejszego rozwiązania z wykorzystaniem dyrektyw wymienionych do tej pory może prowadzić do nadmiernej konsumpcji zasobów raportowanej po wykonaniu syntezy HLS. Dyrektywa \texttt{ALLOCATION} pozwala na ograniczenie użycia operatorów~(np. dodawanie, mnożenie) oraz instancji funkcji występujących na danym poziomie hierarchii, przez co zostanie zwiększone ich współdzielenie pomiędzy operacjami.
+
+%\item \texttt{LOOP\_MERGE}
+\item \texttt{INLINE}
+
+Każda funkcja, o ile nie jest wystarczająco mała, domyślnie jest oddzielnym elementem w hierarchii wywołań a przez to alokująca zasoby sprzętowe na własny użytek.  Stąd użycie zasobów może być optymalizowane tylko w obrębie danej funkcji. Użycie dyrektywy \texttt{INLINE} dla danej funkcji włącza ją do hierarchii funkcji nadrzędnej, potencjalnie dając możliwość lepszego współdzielenia zasobów przez różne operacje~(funkcje posiadające niewiele logiki są automatycznie włączane do hierarchii funkcji wywołującej).
+
+\end{itemize}
+\subsection{Integracja stworzonego modułu IP w układzie FPGA}
+Stworzenie i weryfikacja poprawności działania modułu IP przy użyciu Vivado HLS i udostępnionych razem z nim narzędzi jest ważnym, ale nie ostatnim krokiem na drodze do sprawdzenia poprawności jego działania w realnym układzie FPGA. Nowy blok o stworzonej funkcjonalności przeważnie jest projektowany jako część większego systemu przetwarzania danych. Wiąże się to z koniecznością zaprojektowania poprawnego tzw. \textit{schematu blokowego}~(ang. \textit{block design}) implementującego przepływ danych i kanały komunikacji między modułami. Elementy tego schematu blokowego muszą następnie zostać poddane syntezie do reprezentacji za pomocą netlisty by następnie dokonać próby jej implementacji i wygenerowania pliku konfiguracyjnego dla konkretnego urządzenia. Wszystkie te etapy wykonywane są przez narzędzie zwane \textit{Vivado}.
+\subsubsection{Budowa schematu blokowego}
+Wraz z Vivado Design Suite dostarczana jest baza często używanych i pomocnych w rozwiązywaniu wielu problemów IP\footnote{Dostęp do niektórych z nich może być ograniczony przez odrębne postanowienia licencyjne.}. Wśród nich należy wymienić:
+\begin{itemize}
+\item Moduły będące implementacją prostych rozwiązań procesorowych~(tzw. \textit{softprocesory}) mogących pełnić funkcję prostych mikrokontrolerów monitorujących i sterujących działaniem całego budowanego systemu. Ich wydajność oraz maksymalne częstotliwości pracy nie pozwolą wydajnie przeprowadzać skomplikowanych operacji, jednak ich zaletą jest szeroka możliwość dostrojenia ich parametrów w zakresie przewidzianym przez producenta do potrzeb użytkownika. Przykładem takiego procesora jest 32-bitowy  \textit{Microblaze}~\cite{MB_QUICK}\cite{MB_UG984}, którego podstawowa konfiguracja może być rozszerzona m. in. o:
+\begin{itemize}
+\item pełną obsługę obliczeń zmiennopozycyjnych pojedynczej precyzji,
+\item buforowany dostęp do danych i instrukcji za pomocą pamięci podręcznej~(ang. \textit{cache}) o wybranej konfiguracji rozmiaru,
+\item rozbudowany moduł do analizy błędów wykonania.
+\end{itemize}
+Szczególnie istotny jest tutaj fakt, iż Microblaze posiada własny kompilator C/C++, który jest świadomy wybranej przez użytkownika konfiguracji tego IP. W szczególności, jeśli użytkownik zdecydował się umieścić moduł akcelerujący przetwarzanie danych zmiennopozycyjnych~(ang. \textit{floating-point processing unit}, FPU) to kompilator użyje dedykowanych instrukcji wszędzie tam, gdzie zajdzie potrzeba wykonania operacji na liczbach zmiennopozycyjnych~(w przeciwnym razie funkcjonalność ta będzie emulowana za pomocą sekwencji operacji podstawowych).
+\item Kontroler pamięci zewnętrznej DDR3/DDR4 pozwalający nawiązać komunikację z zasobami mogącymi przechowywać znacznie większe ilości danych niż oferują to elementy wbudowane w FPGA.
+\item Układ generujący sygnały zegarowe o zadanej częstotliwości.
+\item Licznik czasu pozwalający mierzyć jak długo wykonywane są poszczególne zadania przez tworzony system.
+\item Cała rodzina IP służąca do przetwarzania, konwersji i transmisji sygnałów reprezentujących dane wizualne.
+\end{itemize}
+Umieszczenie potrzebnych modułów na schemacie blokowym wymaga następnie, aby połączyć ze sobą odpowiednie porty wejścia/wyjścia w taki sposób, aby cały system działał poprawnie.
+
+Pomocny okazuje się na tym etapie dostęp do podręcznika użytkownika danego modułu, do którego uzyskuje się dostęp bezpośrednio z poziomu widoku schematu blokowego. Ponadto Vivado potrafi wykrywać niepołączone interfejsy z rodziny AXI oraz sygnały \texttt{reset} i zegara (\texttt{clock}), oferując automatyzację połączeń. Trzeba pamiętać, że modyfikacja konfiguracji modułu może prowadzić do powstania, usunięcia bądź zmiany szerokości bitowej portu/portów - w związku z tym może być wymagana interwencja ze strony użytkownika celem zaktualizowania przepływu sygnałów między modułami.
+
+Poprawność konfiguracji połączeń można sprawdzić dzięki wbudowanemu narzędziu. Dokonuje ono walidacji czy wszystkie wymagane porty zostały połączone ze sobą oraz czy spełnione zostały wszystkie inne warunki wymagane do poprawnego działania projektu.
+
+\begin{landscape}
+
+\begin{center}
+\addimage{chapters/ch2/img/bd_example.png}{scale=0.52}{•}{short}{ch2:img:bd_example}
+\end{center}
+
+\end{landscape}
+
+\subsubsection{Synteza i implementacja}
+Narzędzia wchodzące w skład Vivado, które dokonują syntezy, przetwarzają niezależny od architektury kod RTL do postaci odwzorowującej przepływ danych z użyciem konkretnych elementów logicznych znajdujących się w układzie FPGA. Trzeba jednak zdawać sobie sprawę z tego, iż napisany w odpowiedni sposób kod RTL może ułatwić narzędziom ekstrakcję konkretnych zachowań, które będą mogły być odwzorowane bezpośrednio w wyspecjalizowanych układach np. DSP. 
+
+Powyższy problem nie występuje w przypadku tworzenia modułów z użyciem Vivado HLS. Dzięki temu, iż wie ono, dla jakiego układu FPGA dokonywana jest translacja, tworzone są takie konstrukcje w kodzie Verilog/VHDL, które wywołają syntezę optymalnej sekwencji elementów logicznych. 
+
+Mimo to nie jest prawdą, że dla danego projektu, na który składają się poszczególne moduły IP, istnieje tylko jedna reprezentacja za pomocą netlisty - jej końcowa postać zależy od parametrów syntezy. Kilka standardowych zbiorów ustawień, zwanych strategiami, dostarczanych jest przez producenta. Wśród nich są takie, które dostosowują netlistę by zajmowała jak najmniej zasobów~(\texttt{Flow\_AreaOptimized\_medium}, \texttt{Flow\_AreaOptimized\_high}), ale też i takie które w zamian za zwiększenie użycia logiki układu w teorii mogą pozwolić na uzyskanie wyższych częstotliwości pracy~(\texttt{Flow\_PerfOptimized\_high}). Dozwolone jest również samodzielnie dokonywanie zmian, a tym samym tworzenie własnych strategii syntezy~\cite{UG901}. 
+
+\subsubsection{Implementacja}
+
+%\subsection{Dobór układu w projekcie}
+
+%\section{Sytnteza układu oraz implementacja w FPGA}
+\section*{Podsumowanie}
 
