@@ -321,11 +321,11 @@ Każda funkcja, o ile nie jest wystarczająco mała, domyślnie jest oddzielnym 
 
 \end{itemize}
 \subsection{Integracja stworzonego modułu IP w układzie FPGA}
-Stworzenie i weryfikacja poprawności działania modułu IP przy użyciu Vivado HLS i udostępnionych razem z nim narzędzi jest ważnym, ale nie ostatnim krokiem na drodze do sprawdzenia poprawności jego działania w realnym układzie FPGA. Nowy blok o stworzonej funkcjonalności przeważnie jest projektowany jako część większego systemu przetwarzania danych. Wiąże się to z koniecznością zaprojektowania poprawnego tzw. \textit{schematu blokowego}~(ang. \textit{block design}) implementującego przepływ danych i kanały komunikacji między modułami. Elementy tego schematu blokowego muszą następnie zostać poddane syntezie do reprezentacji za pomocą netlisty by następnie dokonać próby jej implementacji i wygenerowania pliku konfiguracyjnego dla konkretnego urządzenia. Wszystkie te etapy wykonywane są przez narzędzie zwane \textit{Vivado}.
+Stworzenie i weryfikacja poprawności działania modułu IP przy użyciu Vivado HLS i udostępnionych razem z nim narzędzi jest ważnym, ale nie ostatnim krokiem na drodze do jego działania w realnym układzie FPGA. Nowy blok o stworzonej funkcjonalności przeważnie jest projektowany jako część większego systemu przetwarzania danych. Wiąże się to z koniecznością zaprojektowania poprawnego tzw. \textit{schematu blokowego}~(ang. \textit{block design}) implementującego przepływ danych i kanały komunikacji między modułami. Elementy tego schematu blokowego muszą następnie zostać poddane syntezie do reprezentacji za pomocą netlisty by następnie dokonać próby jej implementacji i wygenerowania pliku konfiguracyjnego dla konkretnego urządzenia. Wszystkie te etapy wykonywane są przez narzędzie zwane \textit{Vivado}.
 \subsubsection{Budowa schematu blokowego}
 Wraz z Vivado Design Suite dostarczana jest baza często używanych i pomocnych w rozwiązywaniu wielu problemów IP\footnote{Dostęp do niektórych z nich może być ograniczony przez odrębne postanowienia licencyjne.}. Wśród nich należy wymienić:
 \begin{itemize}
-\item Moduły będące implementacją prostych rozwiązań procesorowych~(tzw. \textit{softprocesory}) mogących pełnić funkcję prostych mikrokontrolerów monitorujących i sterujących działaniem całego budowanego systemu. Ich wydajność oraz maksymalne częstotliwości pracy nie pozwolą wydajnie przeprowadzać skomplikowanych operacji, jednak ich zaletą jest szeroka możliwość dostrojenia ich parametrów w zakresie przewidzianym przez producenta do potrzeb użytkownika. Przykładem takiego procesora jest 32-bitowy  \textit{Microblaze}~\cite{MB_QUICK}\cite{MB_UG984}, którego podstawowa konfiguracja może być rozszerzona m. in. o:
+\item Moduły będące implementacją prostych rozwiązań procesorowych~(tzw. \textit{softprocesory}) mogących pełnić funkcję mikrokontrolerów monitorujących i sterujących działaniem całego budowanego systemu. Ich wydajność oraz maksymalne częstotliwości pracy nie pozwolą wydajnie przeprowadzać skomplikowanych operacji, jednak ich zaletą jest szeroka możliwość dostrojenia ich parametrów w zakresie przewidzianym przez producenta do potrzeb użytkownika. Przykładem takiego procesora jest 32-bitowy  \textit{Microblaze}~\cite{MB_QUICK}\cite{MB_UG984}, którego podstawowa konfiguracja może być rozszerzona m. in. o:
 \begin{itemize}
 \item pełną obsługę obliczeń zmiennopozycyjnych pojedynczej precyzji,
 \item buforowany dostęp do danych i instrukcji za pomocą pamięci podręcznej~(ang. \textit{cache}) o wybranej konfiguracji rozmiaru,
@@ -337,21 +337,19 @@ Szczególnie istotny jest tutaj fakt, iż Microblaze posiada własny kompilator 
 \item Licznik czasu pozwalający mierzyć jak długo wykonywane są poszczególne zadania przez tworzony system.
 \item Cała rodzina IP służąca do przetwarzania, konwersji i transmisji sygnałów reprezentujących dane wizualne.
 \end{itemize}
-Umieszczenie potrzebnych modułów na schemacie blokowym wymaga następnie, aby połączyć ze sobą odpowiednie porty wejścia/wyjścia w taki sposób, aby cały system działał poprawnie.
+Umieszczenie potrzebnych modułów na schemacie blokowym wymaga następnie, aby połączyć ze sobą odpowiednie porty wejścia/wyjścia w taki sposób, aby cały system działał poprawnie~(zobacz schemat ukazany na rysunku~\ref{ch2:img:bd_example}). Pomocny okazuje się na tym etapie dostęp do podręcznika użytkownika danego modułu, do którego uzyskuje się dostęp bezpośrednio z poziomu widoku schematu blokowego. Ponadto Vivado potrafi wykrywać niepołączone interfejsy z rodziny AXI oraz sygnały \texttt{reset} i zegara (\texttt{clock}), oferując automatyzację połączeń. Trzeba pamiętać, że modyfikacja konfiguracji modułu może prowadzić do powstania, usunięcia bądź zmiany szerokości bitowej portu/portów - w związku z tym może być wymagana interwencja ze strony użytkownika celem zaktualizowania przepływu sygnałów między modułami.
 
-Pomocny okazuje się na tym etapie dostęp do podręcznika użytkownika danego modułu, do którego uzyskuje się dostęp bezpośrednio z poziomu widoku schematu blokowego. Ponadto Vivado potrafi wykrywać niepołączone interfejsy z rodziny AXI oraz sygnały \texttt{reset} i zegara (\texttt{clock}), oferując automatyzację połączeń. Trzeba pamiętać, że modyfikacja konfiguracji modułu może prowadzić do powstania, usunięcia bądź zmiany szerokości bitowej portu/portów - w związku z tym może być wymagana interwencja ze strony użytkownika celem zaktualizowania przepływu sygnałów między modułami.
-
-Poprawność konfiguracji połączeń można sprawdzić dzięki wbudowanemu narzędziu. Dokonuje ono walidacji czy wszystkie wymagane porty zostały połączone ze sobą oraz czy spełnione zostały wszystkie inne warunki wymagane do poprawnego działania projektu.
+Poprawność konfiguracji połączeń można sprawdzić dzięki wbudowanemu narzędziu. Dokonuje ono walidacji czy wszystkie wymagane porty zostały połączone ze sobą oraz czy spełnione zostały wszystkie inne warunki~(ang. \textit{constraints}) wymagane do poprawnego działania projektu.
 
 \begin{landscape}
 
 \begin{center}
-\addimage{chapters/ch2/img/bd_example.png}{scale=0.52}{•}{short}{ch2:img:bd_example}
+\addimage{chapters/ch2/img/bd_example.png}{scale=0.41}{Schemat blokowy prostego przykładowego systemu przetwarzania danych. Sercem systemu w tym przypadku jest mikroprocesor Microblaze  wyposażony w możliwość sprawdzania poprawności przetwarzania za pomocą \textit{Microblaze Debug Module}. Drugim istotnym elementem jest generator interfejsu do pamięci zewnętrznej \textit{DDR4 SDRAM} - dzięki niemu możliwe jest zapisywanie i odczyt danych przez Microblaze z i do zewnętrznej względem układu FPGA pamięci RAM. Jednak, aby Microblaze mógł się komunikować z modułem zarządzającym pamięcią zewnętrzną są one połączone ze sobą za pomocą \textit{AXI Interconnect}. Na tej samej zasadzie z mikroprocesorem połączone są licznik czasu \textit{AXI Timer} oraz moduł do komunikacji zewnętrznej \textit{AXI Uartlite}~(wykorzystywany najczęściej do wypisywania tekstu na terminalu). W systemie tym występują dwa sygnały zegarowe: pierwszy (\textit{default\_sysclk1\_300}) wpływa na szybkość pracy interfejsu pamięci zewnętrznej, zaś drugi generowany przez \textit{Clocking Wizard} decyduje m. in o wydajności pracy mikroprocesora.  }{Schemat blokowy prostego przykładowego systemu przetwarzania danych}{ch2:img:bd_example}
 \end{center}
 
 \end{landscape}
 
-\subsubsection{Synteza i implementacja}
+\subsubsection{Synteza}
 Narzędzia wchodzące w skład Vivado, które dokonują syntezy, przetwarzają niezależny od architektury kod RTL do postaci odwzorowującej przepływ danych z użyciem konkretnych elementów logicznych znajdujących się w układzie FPGA. Trzeba jednak zdawać sobie sprawę z tego, iż napisany w odpowiedni sposób kod RTL może ułatwić narzędziom ekstrakcję konkretnych zachowań, które będą mogły być odwzorowane bezpośrednio w wyspecjalizowanych układach np. DSP. 
 
 Powyższy problem nie występuje w przypadku tworzenia modułów z użyciem Vivado HLS. Dzięki temu, iż wie ono, dla jakiego układu FPGA dokonywana jest translacja, tworzone są takie konstrukcje w kodzie Verilog/VHDL, które wywołają syntezę optymalnej sekwencji elementów logicznych. 
@@ -359,9 +357,35 @@ Powyższy problem nie występuje w przypadku tworzenia modułów z użyciem Viva
 Mimo to nie jest prawdą, że dla danego projektu, na który składają się poszczególne moduły IP, istnieje tylko jedna reprezentacja za pomocą netlisty - jej końcowa postać zależy od parametrów syntezy. Kilka standardowych zbiorów ustawień, zwanych strategiami, dostarczanych jest przez producenta. Wśród nich są takie, które dostosowują netlistę by zajmowała jak najmniej zasobów~(\texttt{Flow\_AreaOptimized\_medium}, \texttt{Flow\_AreaOptimized\_high}), ale też i takie które w zamian za zwiększenie użycia logiki układu w teorii mogą pozwolić na uzyskanie wyższych częstotliwości pracy~(\texttt{Flow\_PerfOptimized\_high}). Dozwolone jest również samodzielnie dokonywanie zmian, a tym samym tworzenie własnych strategii syntezy~\cite{UG901}. 
 
 \subsubsection{Implementacja}
+Proces implementacji za pomocą Vivado polega na umieszczeniu i połączeniu w układzie FPGA wytworzonej na etapie syntezy netlisty w taki sposób, aby spełnione były wszelkie warunki nałożone na projekt~(dotyczące np. opóźnień sygnału między blokami powiązanych z zastosowaną częstotliwością zegara, wyprowadzeń odpowiednich sygnałów na wybrane porty wejścia/wyjścia z układu FPGA\footnote{Przykładem tego może być wykorzystanie zewnętrznej względem układu pamięci RAM.}), dając w rezultacie konfigurację działającego układu o zaprojektowanej funkcjonalności. Proces ten składa się w ogólności z kilku pod-procesów, z których część jest opcjonalna, jednak zwiększają one prawdopodobieństwo~(poprzez dokonywane przez nie optymalizacje) spełnienia specyficznych warunków stawianych przed projektem jak np. wysokiej częstotliwości przetwarzania czy założonego limitu konsumpcji energii elektrycznej~\cite{UG904}. 
+
+Tak samo jak w przypadku syntezy, producent dostarcza kilkunastu różnych strategii implementacji pozwalających zoptymalizować projekt pod wybranym aspektem (np. poboru mocy, konsumpcji bloków logicznych, częstotliwości pracy). Można również tworzyć własne strategie.
+
+Poziom komplikacji danego układu, rozumianego jako zespół tworzącego go modułów IP, wybrana strategia implementacji, szybkość komputera~(częstotliwość procesora oraz możliwości przetwarzania współbieżnego, dostępna pojemność pamięci RAM, szybkość dysku twardego/SSD) oraz rodzaj docelowego układu FPGA wpływać będą na czas potrzebny na przeprowadzenie procesu implementacji - ten może wynosić tak kilkanaście minut jak i kilkadziesiąt godzin. Aby efekt implementacji uznać za poprawny, spełnione muszą być następujące warunki:
+\begin{itemize}
+\item Układ FPGA musi posiadać wystarczającą ilość elementów logicznych wymaganych do implementacji projektu. Praktyczna zasada mówi o tym, aby projekt nie wymagał użycia więcej niż 70\% zasobów~\cite{Designing_with_Xilinx}.
+\item Sieć połączeń musi być w stanie skomunikować wszystkie potrzebne punkty~(porty sygnałowe elementów logicznych) ze sobą. 
+\item Nie mogą zostać naruszone wymagania czasowe związane z propagacją sygnałów. 
+
+Sygnały zegarowe są elementem synchronizacyjnym zapewniającym, że przesyłanie danych odbywa się bez błędów. Kiedy sygnał reprezentujący wartość w wyniku działania danego elementu logicznego ulega zmianie, w czasie dokonywania się tej zmiany wartość jest niestabilna. Stąd wymagany jest pewien czas~(ten zależny jest między innymi od układu FPGA oraz zakresu temperatur pracy), zanim będzie można użyć tej nowej wartości. 
+\begin{itemize}
+\item \textit{Czas konfiguracji} $t_s$~(ang. \textit{setup time}) jest to najmniejszy czas przed kolejnym zboczem zegara, kiedy sygnał musi być ustabilizowany.
+\item \textit{Okres wstrzymania} $t_h$~(ang. \textit{hold time}) jest minimalnym czasem, przez który sygnał musi być stabilny po zboczu zegara.
+\end{itemize}
+
+\addimage{chapters/ch2/img/clock_sync.png}{scale=0.8}{Czas konfiguracji i okres wstrzymania - $t_s$ oraz $t_h$ definiują tzw. okno czasowe w którym sygnał musi być stabilny. Synchronizacja następuje względem narastającego zbocza sygnału zegarowego}{Czas konfiguracji i okres wstrzymania}{ch2:img:clock_sync}
+
+W przypadku niespełnienia którejkolwiek z powyższych metryk ($t_s$, $t_h$) w którymkolwiek miejscu przetwarzania danych mamy do czynienia z naruszeniem~(ang. \textit{setup violation}, \textit{hold violation}), które najprawdopodobniej będzie wiązało się z niepoprawnie działającym układem. Raport po implementacji prezentuje dodatkowe parametry mówiące o tym:
+\begin{itemize}
+\item ile wynosi największe spóźnienie się z konfiguracją sygnału tzw. \textit{WNS}~(ang. \textit{worst negative slack}),
+\item o ile za krótko wynosi najgorszy z okresów wstrzymania tzw. \textit{WHS}~(ang. \textit{worst hold slack}).
+\end{itemize}
+Jeśli implementacja przebiegła poprawnie WNS oraz WHS są nieujemne.
+
+\end{itemize}
 
 %\subsection{Dobór układu w projekcie}
 
 %\section{Sytnteza układu oraz implementacja w FPGA}
 \section*{Podsumowanie}
-
+W powyższych paragrafach, dokonano zwięzłego opisu tego, czym są układy FPGA, na jakiej zasadzie działają oraz jakiego rodzaju wyzwania wiążą się z ich wykorzystaniem. Jednym z nich jest niewątpliwie sposób, w jaki dokonuje się opisu zachowania sprzętu, czyli sposobu przetwarzania danych. Zaprezentowane rozwiązanie polega na wykorzystaniu syntezy wysokiego poziomu, w tym przypadku Vivado HLS, która na podstawie algorytmicznego opisu za pomocą C/C++ o zmodyfikowanych możliwościach~(tj. z ograniczoną składnią i dyrektywami optymalizacyjnymi) potrafi dokonać poprawnej konwersji do języków opisu sprzętu. Niewątpliwą zaletą takiego rozwiązania jest fakt, iż nie wymaga ono specjalistycznej wiedzy oraz zwiększa produktywność programisty/projektanta. Z drugiej jednak strony, oddzielne badania i porównania sugerują, iż osiągnięcie identycznie niskiego zużycia zasobów połączonego z wysoką wydajnością, jaką zapewnia bezpośrednia konfiguracja sprzętu z użyciem VHDL czy Verilog, jest właściwie niemożliwa. Mimo to Vivado HLS wydaje się być ciekawym narzędziem, zwłaszcza do tworzenia rozwiązań prototypowych.
