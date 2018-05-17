@@ -588,7 +588,7 @@ Powierzchnie niematowe charakteryzują się pewnym stopniem połysku zależnym o
 gdzie $k_s(\vec{p})\in[0, 1]$ stanowi współczynnik odbicia w danym punkcie $\vec{p}$.
 \addimage{chapters/ch1/img/Specular_reflection.png}{scale=0.5}{Modelowanie odbić w modelu Phonga. Kąt $\alpha$ definiowany jest jako kąt między między $\vec{\omega_o}$ a odbiciem względem normalnej $\vec{n}$ do powierzchni kierunku do źródła światła $\vec{l}$ }{Modelowanie odbić w modelu Phonga}{ch1:img:Specular_reflection}
 Parametr $e$ występujący we wzorze~\eqref{ch1:eq:PhongBRDFNonnormalized} decyduje o skupieniu odbitej wiązki wokół $\vec{l^\prime}$ i dla powierzchni lustrzanej $e\rightarrow\infty$.
-\addimage{chapters/ch1/img/cose.png}{scale=0.5}{Zależność funkcji rozbłysku od parametru $e$. Im większa wartość $e$ tym rozkład jest staje się mocniej skupiony wokół $\alpha=0^\circ$}{Zależność funkcji rozbłysku od parametru $e$}{ch1:img:cose}
+\addimage{chapters/ch1/img/cose.png}{scale=0.5}{Zależność funkcji rozbłysku od parametru $e$. Im większa wartość $e$ tym rozkład staje się mocniej skupiony wokół $\alpha=0^\circ$}{Zależność funkcji rozbłysku od parametru $e$}{ch1:img:cose}
 
 Pewną modyfikacją oryginalnego modelu Phonga jest model Blinna-Phonga, który został wprowadzony w celu uniknięcia obliczania bezpośrednio odbitego wektora $\vec{l^\prime}$~\cite{BlinnPhong} i zaproponował użycie wektora połówkowego~(rysunek~\ref{ch1:img:Specular_reflection_blinn}):
 \begin{equation}
@@ -612,7 +612,7 @@ f_s(\vec{p}, \alpha; e) = k_s(\vec{p})\frac{e + 2}{2\pi}\cos^e\alpha.
 \label{ch1:eq:PhongBRDFNormalized}
 \end{equation}
 
-Okazuje się jednak, że sama normalizacja nie jest wystarczająca~\cite{Lafortune94usingthe}. Skoro odbicie w rzeczywistych materiałach jest wypadkową różnych mechanizmów odbicia to aby zasada zachowania energii była spełniona, należy nałożyć ograniczenie na sumę współczynników:
+Okazuje się jednak, że sama normalizacja nie jest wystarczająca~\cite{Lafortune94usingthe}. Skoro odbicie w rzeczywistych materiałach jest wypadkową różnych mechanizmów odbicia, to aby zasada zachowania energii była spełniona, należy nałożyć ograniczenie na sumę współczynników:
 \begin{equation}
 k_d(\vec{p}) + k_s(\vec{p}) \leq 1.
 \end{equation}
