@@ -406,7 +406,9 @@ T &= \frac{n_t\cos\theta_t}{n_i\cos\theta_i}tt^* = \frac{n_t\cos\theta_t}{n_i\co
 Uprośćmy teraz wyrażenia \eqref{ch1:eq:rPerpendicularGeneral} oraz \eqref{ch1:eq:rParallelGeneral} w taki sposób, że $\mu_i \approx \mu_t \approx \mu_0$ oraz $n_w = \frac{n_t}{n_i}=\eta - ik$ (dla uproszczenia zapisu zależność od częstotliwości zostanie pominięta):
 
 \begin{align}
+\label{ch1:eq:SimpleFresnelRperp}
 r_\perp &= \frac{\cos\theta_i - n_w\cos\theta_t}{\cos\theta_i + n_w\cos\theta_t},\\
+\label{ch1:eq:SimpleFresnelRpara}
 r_\parallel &= \frac{n_w\cos\theta_i - \cos\theta_t}{n_w\cos\theta_i + \cos\theta_t}.
 \end{align}
 
@@ -592,11 +594,11 @@ Parametr $e$ występujący we wzorze~\eqref{ch1:eq:PhongBRDFNonnormalized} decyd
 
 Pewną modyfikacją oryginalnego modelu Phonga jest model Blinna-Phonga, który został wprowadzony w celu uniknięcia obliczania bezpośrednio odbitego wektora $\vec{l^\prime}$~\cite{BlinnPhong} i zaproponował użycie wektora połówkowego~(rysunek~\ref{ch1:img:Specular_reflection_blinn}):
 \begin{equation}
-\vec{h} = \frac{\vec{l} + \vec{\omega_o}}{|\vec{l} + \vec{\omega_o}|}.
+\vec{\omega_h} = \frac{\vec{l} + \vec{\omega_o}}{|\vec{l} + \vec{\omega_o}|}.
 \end{equation}
-Wektor ten jest następnie używany w celu określenia kąta $\alpha = \angle(\vec{\omega_o}, \vec{h})$ i użyty w ten sam sposób jak w oryginalnym modelu Phonga~\eqref{ch1:eq:PhongBRDFNonnormalized}.
+Wektor ten jest następnie używany w celu określenia kąta $\alpha = \angle(\vec{n}, \vec{\omega_h})$ i użyty w ten sam sposób jak w oryginalnym modelu Phonga~\eqref{ch1:eq:PhongBRDFNonnormalized}.
 
-\addimage{chapters/ch1/img/Specular_reflection_blinn.png}{scale=0.5}{Modelowanie odbić w modelu Blinna-Phonga. Kąt $\alpha$ definiowany jest jako kąt między między $\vec{h} = \frac{\vec{l} + \vec{\omega_o}}{|\vec{l} + \vec{\omega_o}|}$ a odbiciem względem normalnej $\vec{n}$ do powierzchni kierunku do źródła światła $\vec{l}$ }{Modelowanie odbić w modelu Blinna-Phonga}{ch1:img:Specular_reflection_blinn}
+\addimage{chapters/ch1/img/Specular_reflection_blinn.png}{scale=0.5}{Modelowanie odbić w modelu Blinna-Phonga. Kąt $\alpha$ definiowany jest jako kąt między między $\vec{\omega_h} = \frac{\vec{l} + \vec{\omega_o}}{|\vec{l} + \vec{\omega_o}|}$ a normalną $\vec{n}$ do powierzchni }{Modelowanie odbić w modelu Blinna-Phonga}{ch1:img:Specular_reflection_blinn}
 
 Oba te modele mają tę wadę, że są modelami empirycznymi tzn. nie biorą pod uwagę rzeczywistych zjawisk zachodzących w materiale. Co więcej ani model Phonga ani Blinna-Phonga nie spełnia podstawowych założeń związanych z funkcją BRDF~\cite{Lewis94makingshaders} tzn. łamana jest zasada odwracalności oraz zachowania energii. Aby temu zaradzić należy dokonać normalizacji:
 
@@ -622,7 +624,7 @@ Tak samo jak w przypadku światła rozproszonego poprawne modelowanie odbicia ki
 \addimage{chapters/ch1/img/Torrance_Sparrow.png}{scale=0.55}{Geometria odbicia w modelu Torrance'a-Sparrowa.}{Geometria odbicia w modelu Torrance'a-Sparrowa}{ch1:img:Torrance_Sparrow}
 Jego ogólna funkcja BSDF (BRDF) jest zapisywana jako:
 \begin{equation}
-f_s(\vec{p}, \vec{\omega_i}(\phi_i, \theta_i), \vec{\omega_o}(\phi_o, \theta_o)) = \frac{D(\omega_h)G(\omega_o, \omega_i)F_r(\omega_o)}{4\cos\theta_o\cos\theta_i}.
+f_s(\vec{p}, \vec{\omega_i}(\phi_i, \theta_i), \vec{\omega_o}(\phi_o, \theta_o)) = \frac{D(\vec{\omega_h})G(\vec{\omega_o}, \vec{\omega_i})F_r(\vec{\omega_o})}{4\cos\theta_o\cos\theta_i}.
 \label{ch1:eq:TorranceSparrowFull}
 \end{equation}
 Składa się na nią:
