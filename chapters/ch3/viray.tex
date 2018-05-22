@@ -173,13 +173,141 @@ Nawet jeśli w strukturze układu FPGA udałoby się realnie umieścić 10 takic
 
 Kończąc opis tego rozwiązania, należy mieć na względzie, iż możliwość stworzenia za pomocą Vivado HLS szybkiego i małego~(w sensie utylizacji zasobów układu FPGA) procesora geometrii była przez długi czas główną koncepcją, na jakiej oparty miał być system generowania obrazów metodą śledzenia promieni. Przedstawiony tutaj procesor jest najszybszym ze stworzonych, aczkolwiek wniosek ten jest prawdziwy tak długo jak do syntezy wykorzystywana jest wersja 2017.2 Vivado Design Suite. Ten sam procesor poddany syntezie z użyciem wersji 2016.2 tego narzędzia z syntezą o takich samych parametrach tworzył moduł o interwale 5, zatem wyraźnie wolniejszy. Z drugiej jednak strony nowsza wersja nie potrafiła poprawnie planować wykonania zadań w regionie objętym dyrektywą \texttt{DATAFLOW}~(przez co jej wykorzystanie nie dawało żadnych korzyści w postaci zmniejszenia czasu wykonania) oraz nie umożliwiała wykonania testów tworzonego modułu w środowisku C/C++\footnote{Wymuszało to postępowanie, takie że synteza HLS była przeprowadzana w wersji 2017.2 narzędzia, zaś testy wykonywano w wersji 2016.2.}. Z drugiej strony nowsze wersje środowiska tzn. 2017.3 i nowsze w ogóle nie potrafią przeprowadzić syntezy przygotowanego kodu~(głównie ze względu na zmianę interfejsów funkcji odpowiedzialnych za obsługę liczb stałopozycyjnych, na których projekt opiera swoje działanie). Przytoczone obserwacje pokazują, że Vivado HLS ulega zmianom, nie zawsze tylko wszystkie zmiany w nim zachodzące są pożądane i aktualnie istnieje duży problem związany z wyborem optymalnej jego wersji.
 
-
-
-
-
 \subsection{Wyspecjalizowany akcelerator o ustalonej funkcjonalności}
-\addimage{chapters/ch3/img/viray_scheme.png}{scale=0.5}{•}{short}{ch3:img:viray_scheme}
+Wiedza oraz doświadczenie zdobyte podczas prac nad stworzeniem modułu śledzenia promieni opartego o przetwarzanie zestawu instrukcji miały się jednak przydać podczas projektowania zupełnie innego rozwiązania, opartego o zestaw funkcjonalności na stałe zakodowany w module. W porównaniu z procesorem, rozwiązanie to ma taką zaletę, że już na etapie syntezy Vivado HLS wie, jakie działania składają się na wykonanie algorytmu, a przez to jest w stanie optymalnie szeregować wykonanie operacji dla jak największej wydajności - o ile tylko program jest napisany wystarczająco starannie tzn. twórca ma świadomość, że to, co jest reprezentowane przez linie kodu będzie docelowo stanowić alokację fizycznych zasobów sprzętowych układu FPGA. Stąd od razu widać, iż dodanie każdej nowej funkcjonalności do tworzonego akceleratora, będzie wiązało się z wykorzystaniem pewnej części układu. Są to dwa wzajemnie wykluczające się czynniki warunkujące rozwój tego typu akceleratora. Trzecim jest wydajność. Omówione na początku tego rozdziału założenia narzucają, by interwał między obliczeniem koloru kolejnych pikseli był nie większy niż 10 cykli zegara przy częstotliwości pracy 100~MHz. Taki efekt można uzyskać jedynie wtedy, gdy stworzony algorytm umożliwia zastosowanie dyrektyw \texttt{PIPELINE} i/lub \texttt{DATAFLOW} w odpowiednich miejscach programu. Im wymagania względem interwału pracy bloku kodu objętego dyrektywą \texttt{PIPELINE} są wyższe~(tzn. interwał dąży do jedności), tym  Vivado HLS ma mniejsze możliwości w zakresie użycia tych samych zasobów na kolejnych etapach przetwarzania danych, w efekcie wzrasta utylizacja elementów układu FPGA.
+\addimage{chapters/ch3/img/fpga_triangle.png}{scale=0.3}{Trójkąt zależności między sprzecznymi ze sobą charakterystykami akceleratora: funkcjonalnością, wydajnością oraz utylizacją zasobów}{Trójkąt zależności między sprzecznymi ze sobą charakterystykami akceleratora}{ch3:img:fpga_triangle}
+
+W wyniku przeprowadzonych prac badawczo-rozwojowych powstał \textsc{ViRay}, czyli modularny system generowania obrazów metodą śledzenia promieni, implementowalny i działający w czasie rzeczywistym z użyciem układów FPGA firmy Xilinx. Jego podstawowa wersja została zoptymalizowana pod kątem układu  Kintex UltraScale+ znajdującego się na płytce ewaluacyjnej KCU116, a do jego stworzenia wykorzystano Vivado Design Suite w wersji 2017.4\footnote{Nazwa systemu jest skrótowcem od ang. \textit{Virtex ray tracer}, który został wymyślony jeszcze na samym początku prac, kiedy do dyspozycji Autora był układ Virtex~7.}\footnote{Pliki projektu dostępne są pod adresem: \url{https://bitbucket.org/rtMasters/ffcore/src/Oren-Nayar_correct/}}.
+
+\addimage{chapters/ch3/img/viray_scheme.png}{scale=0.5}{Ogólna zasada działania modułu \textsc{ViRay}.}{Ogólna zasada działania modułu \textsc{ViRay}}{ch3:img:viray_scheme}
+
+Ogólna zasada działania stworzonego modułu z użyciem Vivado HLS została przedstawiona na rysunku~\ref{ch3:img:viray_scheme}. Na początku w funkcji głównej~(\texttt{Init()}) dokonywana jest inicjalizacja wewnętrznych struktur danych na podstawie parametrów dostarczonych do modułu, po czym następuje główna pętla przetwarzania~(\texttt{RenderScene*()}), w której przeprowadzane są obliczenia dotyczące wszystkich żądanych pikseli obrazu zgodnie z dostarczonym opisem sceny. Tutaj dla każdego nowo obliczanego piksela, najpierw tworzony jest promień pierwotny~(\texttt{CreatePrimaryRay()}), który jest następnie testowany na wypadek przecięcia z obiektami~(\texttt{VisibilityTest()}). Jeśli zderzenie nastąpi, obliczany jest kolor piksela~(\texttt{Shade()}) oraz generowany jest rozproszony promień wtórny względem pierwotnego~(\texttt{ray = ray'}). Ten staje się w kolejnej iteracji promieniem odpowiedzialnym za dostarczenie informacji o świetle rozproszonym. Ilość iteracji, a przez to głębokość śledzenia promieni związanych z kolorem danego piksela jest konfigurowalna. Finalny kolor piksela jest następnie zapisywany w buforze ramki~(\texttt{SaveColorToBuffer()}).
+
+Modularność \textsc{ViRay}'a powoduje, że wiele kluczowych podsystemów biorących udział w tworzeniu finalnego obrazu może zostać ustalone za pomocą jednego pliku konfiguracyjnego~\texttt{typedefs.h}. Z jego pomocą można m. in.:
+\begin{itemize}
+\item określić pulę rodzajów i maksymalną ilość obiektów możliwych do renderowania przez system,
+\item zmienić interwał między kolejnymi pikselami,
+\item dostosować możliwości podsystemu odpowiedzialnego za teksturowanie obiektów lub całkowicie go wyłączyć,
+\item wybrać, które z zaawansowanych modeli oświetlenia mają być dostępne w systemie,
+\item usprawnić szybkość wykonania w środowisku testowym.
+\end{itemize}
+Każdy parametr jest osobną dyrektywą preprocesora~(\texttt{\#define}), a najważniejsze z nich zostały zebrane i opisane w tabeli~\ref{ch3:tab:typedefs}. Koncepcja modularności sprawia z jednej strony, iż kod programu jest dłuższy i bardziej skomplikowany poprzez zastosowanie konstrukcji typu:
+\begin{lstlisting}
+#ifdef DYREKTYWA
+	a = 2;
+#else
+	a = 0.5;
+#endif
+\end{lstlisting}
+jednak posiada niezrównaną zaletę, jaką jest możliwość łatwego dostosowania parametrów modułu do aktualnych potrzeb. Pozwala to na eksplorację najbardziej optymalnych rozwiązań pod kątem tego, co zilustrowane zostało na rysunku~\ref{ch3:img:fpga_triangle}. Na dodatek pozwala zastosować mniej wymagające algorytmy, jeśli implementacja napotyka problemy związane z wytworzeniem odpowiedniej sieci połączeń. Jest to też rozwiązanie przyszłościowe - dysponując nowszą generacją układów FPGA będzie można szybko ulepszyć charakterystykę systemu np. zmniejszając interwał czy zwiększając głębokość śledzenia promieni.
+
 \input{chapters/ch3/typedefs}
+
+\subsubsection{\textsc{ViRay} - najważniejsze komponenty modułu}
+\begin{enumerate}
+\item Inicjalizacja modułu
+
+Wejście modułu \textsc{ViRay} stanowi zespół wskaźników na tablice danych i wartości, które w jednoznaczny sposób przechowują definicję sceny tzn.:
+\begin{itemize}
+\item określają transformacje oraz typy obiektów geometrycznych,
+\item zawierają parametry mówiące o materiale, z jakiego obiekt jest wykonany tj. BRDF, dane tekstury,
+\item ustanawiają parametry związane ze źródłami światła,
+\item definiują położenie, orientację w przestrzeni i inne podstawowe parametry kamery~(obserwatora).
+\end{itemize}
+Dane te przychodzą do modułu w postaci 32 bitowych liczb~(zmiennopozycyjnych oraz całkowitoliczbowych). W przypadku tablic, dane przez nie zawierane są zlinearyzowane tzn. każda tablica przechowuje dane o $k$ wektorach. Każdy 32 bitowy element takiego wektora, zależnie od jego położenia w tym wektorze posiada odpowiednie znaczenie, które musi być odpowiednio zinterpretowane~(rysunek~\ref{ch3:img:decode}). Wymaga to zastosowania procedur, które na podstawie dostarczonych danych będą w stanie dokonać odpowiedniej inicjalizacji wewnętrznych struktur.
+\addimage{chapters/ch3/img/decode.png}{scale=0.5}{Przykład zapisu danych w tablicach wejściowych. Elementy \texttt{a, b, c, d} niosą odpowiednie informacje o \texttt{i}-tym elemencie struktury danych odpowiedzialnej za jedną z części opisu sceny}{Przykład zapisu danych w tablicach wejściowych}{ch3:img:decode}
+Alternatywnie, parametry wejściowe mogłyby zostać przekazane w formie tablic odpowiednich struktur, co uprościłoby proces inicjalizacji w module. W takiej sytuacji domyślnym zachowaniem Vivado HLS jest takie, że każdy element struktury staje się nowym portem danych.
+\begin{lstlisting}
+typedef struct{
+	float s;
+	float t;
+}scale;
+\end{lstlisting}
+W sytuacji przedstawionej powyżej w wyniku syntezy zostaną utworzone oddzielne porty dla \texttt{s} oraz \texttt{t}. Jeśli \texttt{scale} jest tablicą, to \texttt{s}, \texttt{t} będą tak naprawdę portami odwołującymi się do tablic \texttt{s[]}, \texttt{t[]}. Stąd port odpowiadający \texttt{s[]} musiałby wskazywać na liniowy element przechowujący kolejne wartości \texttt{s} tablicy struktur \texttt{scale}. Takie rozwiązanie, choć działa, okazało się niepraktyczne w momencie obsługi modułu za pomocą mikrokontrolera. Zgodnie z dokumentacją Vivado HLS~\cite{UG902} możliwa jest jednak automatyczna linearyzacja struktur, skutkująca wygenerowaniem pojedynczego portu dla struktury za pomocą dyrektywy \texttt{DATA\_PACK}. Pomimo wielu testów, skuteczność tej dyrektywy nie została potwierdzona. Działa ona w przypadku, gdy struktura przechowuje dane całkowite oraz stałopozycyjne. Jeśli jednak zawarte są w niej wartości zmiennoprzecinkowe, odczytywane dane przez moduł nie są poprawne. 
+
+W związku z powyższym, odkodowanie parametrów wejściowych jest dokonywane bezpośrednio przez algorytm, w sposób ręczny, gdyż tylko w taki sposób można zapewnić poprawność odczytu danych przy zachowaniu rozsądnej~(tj. możliwie niskiej) liczby portów.
+
+\item Model kamery i parametry obrazu
+
+Jedynym udostępnianym przez \textsc{ViRay} modelem kamery jest kamera perspektywiczna~(rysunek~\ref{ch3:img:camera_model}). Opisana jest ona poprzez następujące parametry:
+\begin{itemize}
+\item pozycję obserwatora (\texttt{eyePosition)} zadaną w globalnym układzie współrzędnych,
+\item ortonormalną bazę wektorów $\vec{u}$, $\vec{v}$, $\vec{w}$ tworzących lokalny dla obserwatora prawoskrętny układ współrzędnych określający jego orientację w przestrzeni,
+\item odległość rzutni (\texttt{nearPlane}) od obserwatora w kierunku $-\vec{w}$ definiującą szerokość pola widzenia,
+\item parametr odpowiedzialny za powiększenie (\texttt{zoom}) - im jest on mniejszy, tym powiększenie większe.
+\end{itemize}
+Parametry rzutni tj. szerokość~(\texttt{WIDTH}) oraz wysokość~(\texttt{HEIGHT}) ramki obrazu muszą zostać podane w momencie syntezy HLS~(patrz tabela~\ref{ch3:tab:typedefs}). Kiedy rozpoczyna się przetwarzanie nowego piksela obrazu, wywoływana jest funkcja \texttt{GetCameraRayForPixel()}, która przyjmuje parametr zależny od współrzędnych piksela $[w; h] \in [0; \mathtt{WIDTH} - 1]\times[0; \mathtt{HEIGHT} - 1]$ - ten wpływa na kierunek propagacji nowego promienia pierwotnego.
+
+\addimage{chapters/ch3/img/camera_model.png}{scale=0.5}{Kamera w module \textsc{ViRay}. Parametry kamery oraz położenie piksela w ramce obrazu~$[w;h]$ definiują początek oraz kierunek propagacji promienia pierwotnego}{Kamera w module \textsc{ViRay}}{ch3:img:camera_model}
+
+\item Konstrukcja głównej pętli przetwarzania \texttt{RenderScene*()}
+
+\texttt{ViRay} umożliwia wykorzystanie dwóch różnych konstrukcji głównej pętli przetwarzania, które ideowo przedstawiają się następująco:
+\begin{enumerate}
+\item {\color{white}a}
+
+\begin{lstlisting}
+for(unsigned h = 0; h < HEIGHT; ++h)
+{
+#pragma HLS DATAFLOW
+	
+	InnerLoop();
+	memcpy();
+}
+void InnerLoop()
+{
+	...
+	for(unsigned w = 0; w < WIDTH; ++w)
+	{
+	#pragma HLS PIPELINE
+		...
+	}
+}
+\end{lstlisting}
+\item {\color{white}a}
+\begin{lstlisting}
+for(unsigned n = 0; n < NUM_OF_PIXELS; ++n)
+{
+#pragma HLS PIPELINE
+	...
+	memcpy();
+}
+\end{lstlisting}
+
+\end{enumerate}
+W przypadku (a) przetwarzanie pikseli obrazu zostało rozłożone na dwie pętle. Zewnętrzna dokonuje zmiany indeksu pionowego piksela \texttt{h}, zaś w wewnętrznej~(znajdującej się w funkcji \texttt{InnerLoop()}) z zastosowaną dyrektywą \texttt{PIPELINE} następuje obliczenie kolorów pełnego wiersza pikseli przy czym wszystkie piksele z wiersza zapisywane są do tymczasowego bufora pikseli, który jest w całości opróżniany do bufora ramki na koniec iteracji pętli zewnętrznej. Zachowanie takie pozwoliło wydzielić ciało zewnętrznej pętli jako region, który może zostać objęty dyrektywą \texttt{DATAFLOW}. Dane, czyli zawartość bufora tymczasowego, przepływają pomiędzy dwoma zadaniami tj.~obliczeniami, a zapisem do bufora ramki. Kiedy kończy się przetwarzanie danych w pętli wewnętrznej, dane przekazywane są do operacji zapisu \texttt{memcpy()} i w tym samym momencie wewnętrzna pętla może znowu rozpocząć pracę. Problem w takim przypadku, jest taki, iż kolejne obliczenia w pętli wewnętrznej nie stanowią kontynuacji dopiero co zakończonej funkcji \texttt{InnerLoop()} tzn. zanim zostanie wyliczony kolor pierwszego piksela w nowym wierszu minie czas równy opóźnieniu iteracji pętli wewnętrznej, który w finalnej wersji \textsc{ViRay}'a wynosi {\color{red}1331} cykli zegara. Biorąc pod uwagę, iż ramka obrazu w jakości Full HD ma wysokość równą 1080 daje to niemal $1,43\cdot 10^6$ nadmiarowych cykli zegara\footnote{Nadmiarowa ilość cykli wynikająca z każdorazowego rozpoczęcia funkcji \texttt{InnerLoop()} wynosi: 
+\begin{equation}
+1331 - \mathtt{DESIRED\_INNER\_LOOP\_II} = 1331 - 8 = 1323
+\end{equation}
+}. Przy standardowym okresie zegara równym 10~ns, czas tracony tylko z tego powodu to 14,3~ms. Twórcy Vivado HLS przewidzieli występowanie takich sytuacji w tego typu konstrukcjach wprowadzając modyfikator \texttt{rewind} do dyrektywy \texttt{PIPELINE} stosowanej w pętlach. W zamierzeniu sprawia on, że pętla wykonywać będzie się bez przerw na ponowne rozpoczęcie działania, jednak na etapie tworzenia \texttt{ViRay}'a nie udało się takiego zachowania wymusić.
+
+Najprostsze możliwe rozwiązanie, które można włączyć poprzez niezdefiniowanie \texttt{RENDER\_DATAFLOW\_ENABLE} w pliku konfiguracyjnym \texttt{typedefs.h} zostało przedstawione ideowo w przykładzie~(b). Implementuje ono przetwarzanie pikseli w pojedynczej pętli, której ciało zostało objęte dyrektywą \texttt{PIPELINE}. Indeksy piksela w ramce obrazu $[w;h]$ są obliczane na podstawie aktualnej wartości iteratora \texttt{n}, a kolor obliczonego piksela jest zapisywany do bufora ramki bezpośrednio po jego obliczeniu. Eliminuje to nie tylko problem z wielokrotnym rozpoczęciem pętli, ale również usuwa konieczność przechowywania wartości kolorów pikseli w tymczasowym buforze oszczędzając elementy BRAM. 
+
+Wyprzedzając w pewien sposób kolejność prezentacji poszczególnych elementów składowych pełnego systemu śledzenia promieni należy powiedzieć, iż rozwiązanie~(b) jest nieimplementowalne w układzie KCU116 z częstotliwością pracy uzasadniającą jego użycie\footnote{Rozwiązanie typu~(a) nawet pomimo nadmiarowych cykli zegara uzyskiwało znacznie krótsze czasy wykonania z uwagi na uzyskiwane wyższe częstotliwości pracy.}. 
+
+W związku z powyższym zaproponowano, aby zmniejszyć częstość wywoływania \texttt{InnerLoop()} w przypadku~(a). Pętla wewnętrzna każdorazowo musiałaby przetwarzać więcej niż jeden wiersz bufora ramki, a wielkość bufora tymczasowego uległaby odpowiedniemu zwiększeniu. Ilość cykli zegara, które są potrzebne na przeprowadzenie obliczeń wszystkich pikseli ramki obrazu dana jest w przybliżeniu poniższą zależnością:
+\begin{equation}
+f(x) = \frac{\mathtt{HEIGHT}}{x}\left[IL + \left(\mathtt{WIDTH}\cdot x - 1 \right) \cdot c \right] + \mathtt{WIDTH}\cdot x = f_1(x) + f_2(x),
+\label{ch3:eq:dataflow_latency}
+\end{equation}
+gdzie:
+\begin{itemize}
+\item[] $x$ - ilość wierszy obrazu obliczanych w jednym wywołaniu pętli wewnętrznej,
+\item[] $IL$ - opóźnienie iteracji pętli wewnętrznej,
+\item[] $c$ - interwał pętli wewnętrznej~(\texttt{DESIRED\_INNER\_LOOP\_II}).
+\end{itemize}
+Pierwszy składnik sumy $f_1(x)$ to przyczynek do całkowitego opóźnienia związany z obliczaniem pikseli obrazu, zaś $f_2(x)$ wyraża ilość cykli zegara wymaganą na zapis do bufora ramki ostatniej porcji danych przechowywanych w buforze tymczasowym~(wykorzystywany jest tryb seryjnego zapisu danych). Dla parametrów domyślnych systemu śledzenia promieni~(patrz tabela~\ref{ch3:tab:typedefs}) funkcja $f(x)$ prezentuje się następująco:
+
+\addimage{chapters/ch3/img/dataflow_opt.png}{scale=0.5}{Zależność czasu wykonania głównej pętli algorytmu w funkcji ilości wierszy obrazu $x$ liczonych przy jednym wywołaniu pętli wewnętrznej \texttt{InnerLoop()}}{Optymalizacja czasu wykonania głównej pętli algorytmu}{ch3:img:dataflow_opt}
+
+Z wykresu~\ref{ch3:img:dataflow_opt} widać, że znaczne oszczędności czasu wykonania można uzyskać już dla relatywnie niewielkich wartości $x$. Bezwzględne minimum można zaś wyliczyć z zależności:
+\begin{align*}
+\frac{\mathrm{d}f(x)}{\mathrm{d}x} &= -\frac{\mathtt{HEIGHT}\left(IL - c \right)}{x^2} + \mathtt{WIDTH} \equiv 0,\\
+x &= \sqrt{\frac{\mathtt{HEIGHT}\left(IL - c \right)}{\mathtt{WIDTH}}} = 27,28\approx 27.
+\end{align*}
+Przyjęcie $x=27$ pozwala zaoszczędzić $1,326\cdot 10^6$ cykli zegara względem wersji niezoptymalizowanej~($x=1$). 
+
+\end{enumerate}
 
 \subsection{Przepływ danych przez akcelerator}
 Zgrubne i bardziej szczegółowe opisanie funkcjonalności poszczególnych bloczków
