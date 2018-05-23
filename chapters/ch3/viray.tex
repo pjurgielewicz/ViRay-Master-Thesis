@@ -205,7 +205,10 @@ jednak posiada niezrównaną zaletę, jaką jest możliwość łatwego dostosowa
 
 \subsubsection{\textsc{ViRay} - najważniejsze komponenty modułu}
 \begin{enumerate}
-\item Inicjalizacja modułu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\item \underline{Inicjalizacja modułu}
 
 Wejście modułu \textsc{ViRay} stanowi zespół wskaźników na tablice danych i wartości, które w jednoznaczny sposób przechowują definicję sceny tzn.:
 \begin{itemize}
@@ -227,7 +230,9 @@ W sytuacji przedstawionej powyżej w wyniku syntezy zostaną utworzone oddzielne
 
 W związku z powyższym, odkodowanie parametrów wejściowych jest dokonywane bezpośrednio przez algorytm, w sposób ręczny, gdyż tylko w taki sposób można zapewnić poprawność odczytu danych przy zachowaniu rozsądnej~(tj. możliwie niskiej) liczby portów.
 
-\item Model kamery i parametry obrazu
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\item \underline{Model kamery i parametry obrazu}
 
 Jedynym udostępnianym przez \textsc{ViRay} modelem kamery jest kamera perspektywiczna~(rysunek~\ref{ch3:img:camera_model}). Opisana jest ona poprzez następujące parametry:
 \begin{itemize}
@@ -240,9 +245,11 @@ Parametry rzutni tj. szerokość~(\texttt{WIDTH}) oraz wysokość~(\texttt{HEIGH
 
 \addimage{chapters/ch3/img/camera_model.png}{scale=0.5}{Kamera w module \textsc{ViRay}. Parametry kamery oraz położenie piksela w ramce obrazu~$[w;h]$ definiują początek oraz kierunek propagacji promienia pierwotnego}{Kamera w module \textsc{ViRay}}{ch3:img:camera_model}
 
-\item Konstrukcja głównej pętli przetwarzania \texttt{RenderScene*()}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\texttt{ViRay} umożliwia wykorzystanie dwóch różnych konstrukcji głównej pętli przetwarzania, które ideowo przedstawiają się następująco:
+\item \underline{Konstrukcja głównej pętli przetwarzania \texttt{RenderScene*()}}
+
+\textsc{ViRay} umożliwia wykorzystanie dwóch różnych konstrukcji głównej pętli przetwarzania, które ideowo przedstawiają się następująco:
 \begin{enumerate}
 \item {\color{white}a}
 
@@ -279,7 +286,7 @@ W przypadku (a) przetwarzanie pikseli obrazu zostało rozłożone na dwie pętle
 \begin{equation}
 1331 - \mathtt{DESIRED\_INNER\_LOOP\_II} = 1331 - 8 = 1323
 \end{equation}
-}. Przy standardowym okresie zegara równym 10~ns, czas tracony tylko z tego powodu to 14,3~ms. Twórcy Vivado HLS przewidzieli występowanie takich sytuacji w tego typu konstrukcjach wprowadzając modyfikator \texttt{rewind} do dyrektywy \texttt{PIPELINE} stosowanej w pętlach. W zamierzeniu sprawia on, że pętla wykonywać będzie się bez przerw na ponowne rozpoczęcie działania, jednak na etapie tworzenia \texttt{ViRay}'a nie udało się takiego zachowania wymusić.
+}. Przy standardowym okresie zegara równym 10~ns, czas tracony tylko z tego powodu to 14,3~ms. Twórcy Vivado HLS przewidzieli występowanie takich sytuacji w tego typu konstrukcjach wprowadzając modyfikator \texttt{rewind} do dyrektywy \texttt{PIPELINE} stosowanej w pętlach. W zamierzeniu sprawia on, że pętla wykonywać będzie się bez przerw na ponowne rozpoczęcie działania, jednak na etapie tworzenia \textsc{ViRay}'a nie udało się takiego zachowania wymusić.
 
 Najprostsze możliwe rozwiązanie, które można włączyć poprzez niezdefiniowanie \texttt{RENDER\_DATAFLOW\_ENABLE} w pliku konfiguracyjnym \texttt{typedefs.h} zostało przedstawione ideowo w przykładzie~(b). Implementuje ono przetwarzanie pikseli w pojedynczej pętli, której ciało zostało objęte dyrektywą \texttt{PIPELINE}. Indeksy piksela w ramce obrazu $[w;h]$ są obliczane na podstawie aktualnej wartości iteratora \texttt{n}, a kolor obliczonego piksela jest zapisywany do bufora ramki bezpośrednio po jego obliczeniu. Eliminuje to nie tylko problem z wielokrotnym rozpoczęciem pętli, ale również usuwa konieczność przechowywania wartości kolorów pikseli w tymczasowym buforze oszczędzając elementy BRAM. 
 
@@ -292,20 +299,205 @@ f(x) = \frac{\mathtt{HEIGHT}}{x}\left[IL + \left(\mathtt{WIDTH}\cdot x - 1 \righ
 \end{equation}
 gdzie:
 \begin{itemize}
-\item[] $x$ - ilość wierszy obrazu obliczanych w jednym wywołaniu pętli wewnętrznej,
+\item[] $x$ - ilość wierszy obrazu obliczanych w jednym wywołaniu \texttt{InnerLoop()},
 \item[] $IL$ - opóźnienie iteracji pętli wewnętrznej,
 \item[] $c$ - interwał pętli wewnętrznej~(\texttt{DESIRED\_INNER\_LOOP\_II}).
 \end{itemize}
-Pierwszy składnik sumy $f_1(x)$ to przyczynek do całkowitego opóźnienia związany z obliczaniem pikseli obrazu, zaś $f_2(x)$ wyraża ilość cykli zegara wymaganą na zapis do bufora ramki ostatniej porcji danych przechowywanych w buforze tymczasowym~(wykorzystywany jest tryb seryjnego zapisu danych). Dla parametrów domyślnych systemu śledzenia promieni~(patrz tabela~\ref{ch3:tab:typedefs}) funkcja $f(x)$ prezentuje się następująco:
+Pierwszy składnik sumy $f_1(x)$ to przyczynek do całkowitego opóźnienia związany z obliczaniem pikseli obrazu, zaś $f_2(x)$ wyraża ilość cykli zegara wymaganą na zapis do bufora ramki ostatniej porcji danych przechowywanych w buforze tymczasowym~(wykorzystywany jest tryb seryjnego zapisu danych). Dla parametrów domyślnych systemu śledzenia promieni~(patrz tabela~\ref{ch3:tab:typedefs}) wykres funkcji $f(x)$ prezentuje się następująco:
 
-\addimage{chapters/ch3/img/dataflow_opt.png}{scale=0.5}{Zależność czasu wykonania głównej pętli algorytmu w funkcji ilości wierszy obrazu $x$ liczonych przy jednym wywołaniu pętli wewnętrznej \texttt{InnerLoop()}}{Optymalizacja czasu wykonania głównej pętli algorytmu}{ch3:img:dataflow_opt}
+\addimage{chapters/ch3/img/dataflow_opt.png}{scale=0.5}{Zależność czasu wykonania głównej pętli algorytmu w funkcji ilości wierszy obrazu $x$ liczonych przy jednym wywołaniu funkcji implementującej pętlę wewnętrzną \texttt{InnerLoop()}}{Optymalizacja czasu wykonania głównej pętli algorytmu}{ch3:img:dataflow_opt}
 
-Z wykresu~\ref{ch3:img:dataflow_opt} widać, że znaczne oszczędności czasu wykonania można uzyskać już dla relatywnie niewielkich wartości $x$. Bezwzględne minimum można zaś wyliczyć z zależności:
+Z wykresu~\ref{ch3:img:dataflow_opt} widać, że znaczne oszczędności czasu wykonania można uzyskać już dla relatywnie niewielkich wartości $x$. Minimum globalne $f(x)$ można zaś wyliczyć z zależności:
 \begin{align*}
 \frac{\mathrm{d}f(x)}{\mathrm{d}x} &= -\frac{\mathtt{HEIGHT}\left(IL - c \right)}{x^2} + \mathtt{WIDTH} \equiv 0,\\
 x &= \sqrt{\frac{\mathtt{HEIGHT}\left(IL - c \right)}{\mathtt{WIDTH}}} = 27,28\approx 27.
 \end{align*}
-Przyjęcie $x=27$ pozwala zaoszczędzić $1,326\cdot 10^6$ cykli zegara względem wersji niezoptymalizowanej~($x=1$). 
+Przyjęcie $x=27$ pozwala zaoszczędzić $1,326\cdot 10^6$ cykli zegara względem wersji niezoptymalizowanej~($x=1$). Trzeba tylko mieć na uwadze, że wielkość bufora tymczasowego w bitach zależy wprost proporcjonalnie od $x$: 
+\begin{equation}
+\mathtt{WIDTH}\cdot x \cdot 32\ \mathrm{b}.
+\end{equation}
+Stąd w finalnej wersji przyjęto, że $\mathtt{FRAME\_ROWS\_IN\_BUFFER}\equiv x = 20$ - taka wartość sprawia, że czas wykonania głównej pętli algorytmu \texttt{RenderScene*()} mierzony poprzez ilość cykli jest jedynie o {\color{red}5082} cykle gorszy od minimalnego. Dokonując samodzielnych zmian parametru \texttt{FRAME\_ROWS\_IN\_BUFFER} należy zapewnić, aby podana wartość była dzielnikiem \texttt{HEIGHT}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\item \underline{Przetwarzanie geometrii sceny}
+
+Znalezienie przecięcia promienia z najbliższą  powierzchnią jest sednem całej metody śledzenia promieni. \textsc{ViRay} dokonuje testu przecięcia każdego promienia ze wszystkimi obiektami w scenie za pomocą funkcji \texttt{PerformHits()} oraz \texttt{PerformShadowHits()}. Nie jest to na pewno najbardziej optymalny sposób. Rzeczywiste systemy śledzenia promieni stosują struktury akcelerujące wykrywanie przecięć dzięki wielokrotnym podziałom przestrzeni na mniejsze podprzestrzenie. Aczkolwiek zgodnie z przyjętymi założeniami renderowane obiekty nie są złożone z siatek trójkątów, dzięki czemu każdy dostępny kształt geometryczny jest jednym obiektem w scenie. 
+
+Test przecięcia polega na rozwiązaniu równania typu $f(\vec{r}) = f(\vec{o} + t\vec{d})= 0$, którego rozwiązaniem jest dodatnia liczba $t \in [\mathtt{CORE\_BIAS};\mathtt{MAX\_DISTANCE})$~(patrz tabela~\ref{ch3:tab:typedefs}). Zastosowanie \texttt{CORE\_BIAS} wynika z faktu skończonej precyzji obliczeń.
+
+\addimage{chapters/ch3/img/core_bias.png}{scale=0.5}{Wykorzystanie \texttt{CORE\_BIAS} w teście przecięcia. Z uwagi na precyzję obliczeń test przecięcia {\color{green}promienia} z {\color{red}powierzchnią} może skutkować tym, że obliczony punkt znajdzie się pod {\color{red}powierzchnią} zamiast na niej. W takiej sytuacji, promienie wtórne wychodzące z tego punktu będą dawać fałszywie pozytywne testy przecięcia {\color{gray}promienia} z {\color{red}powierzchnią}, chyba że zostanie zastosowany parametr tolerancji \texttt{CORE\_BIAS}}{Wykorzystanie \texttt{CORE\_BIAS} w teście przecięcia}{ch3:img:core_bias}
+
+Obliczenia dotyczące przecięcia promienia z powierzchniami przeprowadzane są w układzie współrzędnych związanym z obiektem. Ma to taką zaletę, że ogólne równania przecięcia $f(\vec{r})=0$ mogą zostać odpowiednio uproszczone oraz pozwala przekształcać obiekty w nietrywialny sposób. W tym celu należy dokonać transformacji promienia takiej, że:
+\begin{equation}
+\vec{r}' = \mathcal{T}^{-1}\left\lbrace\vec{r}\right\rbrace,
+\end{equation}
+gdzie:
+\begin{itemize}
+\item[] $\vec{r}'$ - promień w lokalnej przestrzeni obiektu,
+\item[] $\mathcal{T}^{-1}$ - transformacja odwrotna względem transformacji $\mathcal{T}$ opisującej przekształcenie obiektu we współrzędnych globalnych.
+\end{itemize}
+Najogólniejsza forma podanego przekształcenia wymaga wykorzystania do opisu transformacji obiektów $\mathcal{T}$  macierzy $M$ postaci:
+\begin{equation}
+M = 
+\begin{bmatrix}
+    m_{11} & m_{12} & m_{13}  & t_{1} \\
+    m_{21} & m_{22} & m_{23}   & t_{2} \\
+    m_{31} & m_{32} & m_{33}   & t_{3} \\
+    0 & 0 & 0 & 1 \\
+\end{bmatrix}.
+\end{equation}
+Jej odwrotność $M^{-1}$ dokonuje transformacji promienia do przestrzeni obiektu w następujący sposób:
+\begin{equation}
+\vec{r}' = 
+\begin{cases}
+\vec{o}' = M^{-1}\vec{o}\\
+\vec{d}' = M_{3\times 3}^{-1}\vec{d}
+\end{cases},
+\end{equation}
+przy czym $M_{3\times 3}^{-1}$ jest macierzą złożoną tylko z elementów $m_{ij}$ macierzy $M^{-1}$.
+
+Rozwiązanie równania $f(\vec{r}') = 0$ pozwala obliczyć punkt przecięcia $\vec{p}'$ oraz normalną do powierzchni  w tym punkcie $\vec{n}'$ w przestrzeni obiektu, które do dalszych obliczeń muszą zostać przetransformowane do globalnego układu współrzędnych za pomocą macierzy transformacji $M$ obiektu.
+
+Z uwagi na stopień komplikacji, który uniemożliwia implementację w układzie FPGA, \textsc{ViRay} standardowo~(\texttt{SIMPLE\_OBJECT\_TRANSFORM\_ENABLE} jest zdefiniowane w pliku \texttt{typedefs.h}) umożliwia jedynie dokonywanie transformacji wyrównanych do osi globalnego układu współrzędnych. Oznacza to, że skalowanie oraz orientacja obiektów w przestrzeni jest ograniczona i nie może zachodzić w inny sposób niż wzdłuż wersorów globalnego układu\footnote{Paradoksalnie taka reprezentacja transformacji w znaczny sposób wpływa na przetwarzanie informacji o przecięciu, w skutek czego kod stał się bardziej skomplikowany i trudniejszy w interpretacji.}. 
+
+Funkcja odpowiedzialna za odnalezienie najbliższego obiektu została wyposażona w możliwość testowania promieni z kulami, cylindrami, stożkami, płaszczyznami, dyskami i kwadratami. W pierwszych trzech przypadkach należy rozwiązać równanie kwadratowe ze względu na odległość $t$:
+\begin{align*}
+at^2 + bt + c = 0,\\
+t_{1,2} = \frac{-b\pm\sqrt{\Delta}}{2a},
+\end{align*}
+przy czym $t = \min(t_1, t_2) \geq \mathtt{CORE\_BIAS}$, zaś współczynniki $a, b, c$ zależą od równania opisującego daną powierzchnię:
+\begin{itemize}
+\item Sfera o jednostkowym promieniu $R=1$ i początku w $\vec{o_o} = [0,0,0]$
+
+\begin{align*}
+(\vec{r}' - \vec{o_o}')^2 = R^2\qquad &\Rightarrow \qquad\vec{r}'^2 - 1 = 0,\\
+a &= \vec{d}'\cdot\vec{d}',\\
+b &= 2\vec{d}'\cdot\vec{o}',\\
+c &= \vec{o}'\cdot\vec{o}' - 1.\\
+\end{align*}
+
+\item Cylinder o osi obrotu wokół wersora $\vec{y}'$, jednostkowym promieniu $R=1$ i początku w $\vec{o_o}' = [0,0,0]$
+
+\begin{align*}
+(\vec{r}'_{xz} - \vec{o_o})^2 = R^2\qquad &\Rightarrow\qquad r_x'^2 + r_z'^2 - 1 = 0,\\
+a &= d_x'^2 + d_z'^2,\\
+b &= 2\left(d_x'o_x' + d_z'o_z' \right),\\
+c &= o_x'^2 + o_z'^2 - 1.
+\end{align*}
+
+\item Stożek o promieniu podstawy $R=1$, wysokości $h = 1$ oraz osi obrotu wokół wersora $\vec{y}'$
+
+\begin{align*}
+\left(\frac{hr_x'}{R} \right)^2 - (r_y' - h)^2 + \left(\frac{hr_z'}{R} \right)^2 = 0\qquad &\Rightarrow\qquad r_x'^2 - (r_y' - 1)^2 + r_z'^2 = 0,\\
+a &= d_x'^2 - d_y'^2 + d_z'^2,\\
+b &= 2\left(d_x'o_x' - d_y'o_y' + d_y' + d_z'o_z'\right),\\
+c &= o_x'^2 - o_y'^2 + 2o_y' - 1 + o_z'^2
+\end{align*}
+
+\end{itemize}
+
+Pozostałe trzy obiekty tj. płaszczyzna, dysk oraz kwadrat wymagają rozwiązania równania:
+\begin{equation*}
+(\vec{r}' - \vec{o_o}') \cdot \vec{n} = 0,
+\end{equation*}
+które w przypadku gdy w układzie związanym z obiektem $\vec{o_o}' = [0,0,0]$, a $\vec{n}' = [0, 1, 0]$ redukuje się do postaci:
+\begin{equation*}
+t = -\frac{o_y'}{d_y'}
+\end{equation*}
+
+Określenie czy promień trafił w dysk albo kwadrat wymaga dodatkowo użycia informacji o lokalnym punkcie przecięcia:
+\begin{equation}
+\vec{p}' = \vec{o}' + t\vec{d}'
+\end{equation}
+Jeżeli spełniony jest warunek:
+\begin{itemize}
+\item $p_x'^2 + p_z'^2 \leq 1$ - promień trafił w jednostkowy dysk,
+\item $|p_x'| \leq 1 \wedge |p_z'| \leq 1$ - promień trafił w kwadrat.
+\end{itemize}
+Przyjęcie takich parametrów dla powyższych powierzchni sprawia, że w lokalnym układzie współrzędnych obiektu:
+\begin{equation*}
+\vec{p}'\in [-1, 1]^3.
+\end{equation*}
+Fakt ten jest wykorzystywany podczas teksturowania\footnote{Oczywiście przypadkiem specjalnym jest płaszczyzna, dla której $\vec{p}'\in \mathcal{R}^3$.}.
+
+Funkcjonalność związana ze znalezieniem najbliższego obiektu na drodze promienia jest realizowana przez funkcje \texttt{PerformHits()} oraz \texttt{PerformShadowHits()}. Pierwsza z nich jest wywoływana dla promieni rozproszonych, zaś druga dla promieni cienia, sprawdzających czy między źródłem światła a znalezionym punktem na obiekcie nie znajduje się jakakolwiek przeszkoda. Utylizacja zasobów układu FPGA związana z pojedynczą instancją obu tych funkcji przedstawiona została w tabeli~\ref{ch3:tab:perform_hits_util}.
+
+\begin{table}[H]
+\centering
+\caption[Wykorzystanie zasobów sprzętowych układu KCU116 przez instancje funkcji sprawdzające przecięcie promienia z geometrią]{Wykorzystanie zasobów sprzętowych układu KCU116 przez instancje funkcji sprawdzające przecięcie promienia z geometrią raportowane po wykonaniu syntezy HLS}
+\label{ch3:tab:perform_hits_util}
+\begin{tabular}{|r|c|c|c|c|}
+\hline
+\multicolumn{1}{|l|}{}                  & \textbf{BRAM} & \textbf{DSP} & \textbf{FF}    & \textbf{LUT}   \\ \hline
+\textbf{$\mathtt{PerformHits()}$}       & 0 (0\%)       & 109 (5,96\%) & 24930 (5,75\%) & 20297 (9,36\%) \\ \hline
+\textbf{$\mathtt{PerformShadowHits()}$} & 0 (0\%)       & 107 (5,87\%) & 22887 (5,27\%) & 16121 (7,43\%) \\ \hline
+\end{tabular}
+\end{table}
+
+Tak wysokie wymagania względem układu FPGA związane są z faktem, iż funkcje te zostały poddane działaniu dyrektywy \texttt{PIPELINE} z interwałem równym 1 dla uzyskania maksymalnej wydajności obliczeń, przez co Vivado HLS ma ograniczone możliwości współdzielenia zasobów odpowiedzialnych za wykonanie poszczególnych operacji. To jednak nie wszystko. Ilość instancji tychże funkcji w \textsc{ViRay}'u zależy od:
+\begin{itemize}
+\item maksymalnej ilości obiektów w scenie \texttt{OBJ\_NUM},
+\item interwału między kolejnymi pikselami obrazu \texttt{DESIRED\_INNER\_LOOP\_II},
+\item głębokości śledzenia promieni \texttt{RAYTRACING\_DEPTH},
+\item maksymalnej ilości świateł w scenie \texttt{LIGHTS\_NUM},
+\end{itemize}
+W najprostszym przypadku, gdy \texttt{OBJ\_NUM} = \texttt{DESIRED\_INNER\_LOOP\_II}, a promieniami rozproszonymi są jedynie promienie odbite:
+\begin{align*}
+\#\mathtt{PerformHits()} &= \mathtt{RAYTRACING\_DEPTH},\\
+\#\mathtt{PerformShadowHits()} &= \mathtt{RAYTRACING\_DEPTH} \cdot \left(\mathtt{LIGHTS\_NUM} - 1\right).
+\end{align*}
+Z tego właśnie powodu \textsc{ViRay} w finalnej wersji nie dokonuje obliczeń związanych z promieniami załamanymi, a jedynie rozproszonymi i cienia przy ilości świateł w scenie ograniczonej do dwóch~(jedno otaczające i jedno punktowe) - w ten sposób obie te funkcje łącznie konsumują 1/3 wszystkich LUT układu KCU116. 
+
+W tym miejscu należy również podnieść bardzo istotną kwestię związaną z wielkością \texttt{RAYTRACING\_DEPTH}. Aby mieć możliwość generowania informacji o odbiciach powstających na powierzchni musi być spełniona następująca zależność:
+\begin{equation*}
+\mathtt{RAYTRACING\_DEPTH} \geq 2.
+\end{equation*}
+Podczas prób implementacji wstępnych wersji \textsc{ViRay}'a na układzie VC707 możliwe było zastosowanie jedynie $\mathtt{RAYTRACING\_DEPTH} = 1$, podczas gdy KCU116 pozwoliło osiągnąć $\mathtt{RAYTRACING\_DEPTH} = 2$. Właśnie ten fakt przesądził o zmianie platformy docelowej, pomimo teoretycznie gorszych parametrów związanych z ilością dostępnych elementów~(tabela~\ref{ch3:tab:fpga_comp}).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\item \underline{Cieniowanie - funkcja \texttt{Shade()}}
+
+Zadaniem funkcji cieniującej \texttt{Shade()} jest określenie koloru piksela w przestrzeni barw \texttt{RGB} odpowiadającego znalezionemu punktowi przecięcia $\vec{p}$ z obiektem zgodnie z właściwą funkcją BRDF. Proces ten dokonuje się na podstawie:
+\begin{itemize}
+\item położenia punktu $\vec{p}$ względem źródeł światła,
+\item zastosowanych BRDF dla określenia materiału,
+\item informacji o teksturze, która ma zostać nałożona na obiekt.
+\end{itemize} 
+
+Poniższe równanie będące uogólnieniem równania~\eqref{ch1:eq:shading_equation} opisuje, w jaki sposób liczona jest radiancja w danym punkcie z uwzględnieniem wszystkich źródeł światła~(operator $*$ oznacza mnożenie $i$-tych składowych obu operandów ze sobą)~\cite{RTFTGU}:
+\begin{align}
+L_o(\vec{p}, \vec{\omega_o}) &= k_a(\vec{p}) * L_a\nonumber\\
+&+ \sum_{i=1}^{\mathtt{LIGHTS\_NUM}} k_d(\vec{p}) * L_d(\vec{p}, \vec{\omega_o}) \cdot c_i\cdot s_i\cdot s_{cf_i} \nonumber\\
+&+ \sum_{i=1}^{\mathtt{LIGHTS\_NUM}} k_s(\vec{p}) * L_s(\vec{p}, \vec{\omega_o}) \cdot c_i\cdot s_i\cdot s_{cf_i},
+\end{align}
+gdzie:
+\begin{itemize}
+\item $k_a, k_d, k_s \in [0, 1]^3$ - współczynniki określające stopień interakcji materiału z daną składową \texttt{RGB} światła odpowiednio: otoczenia, rozproszonego i odbitego zwierciadlanie,
+\item $L_a, L_d(\vec{p}, \vec{\omega_o}), L_s(\vec{p}, \vec{\omega_o})$ - BRDF dla światła otoczenia, rozproszonego i odbitego zwierciadlanie,
+\item $c_i = \frac{\max\left(\vec{n} \cdot \frac{\vec{p} - \vec{l_i}}{|\vec{p} - \vec{l_i}|}  , 0\right)}{|\vec{p} - \vec{l_i}|^2} $ - współczynnik związany z kwadratowym zanikiem oraz orientacją względem kierunku padania światła~($\vec{l_i}$ - położenie źródła światła),
+\item $s_i\in\lbrace 0, 1 \rbrace$ - wynik testu zasłaniania (\texttt{ShadowVisibilityTest()}) $i$-tego źródła światła przez obiekty sceny, jeśli $s_i=0$ punkt $\vec{p}$ jest w cieniu,
+\item $s_{cf_i}\in[0, 1]$ - współczynnik determinujący czy punkt $\vec{p}$ znajduje się w stożku świetlnym źródła umieszczonego w $\vec{l_i}$.
+\end{itemize}
+
+W scenie renderowanej za pomocą \textsc{ViRay}'a, można umieszczać \textit{punktowe źródła światła} wysyłające promieniowanie w określonym przez użytkownika stożku świetlnym - ten zadany jest przez kierunek główny $\overrightarrow{l_{dir}}$, oraz kosinus połowy kąta rozwarcia $\cos \frac{\alpha}{2}$~(rysunek~\ref{ch3:img:light_params}). Dodatkowy kąt $\beta$ decyduje o kosinusie $\cos\frac{\beta}{2}$, którego przekroczenie będzie wpływać na przybieranie przez $s_{cf_i}$ wartości pośrednich między 0 a 1. Naturalnie punktowe źródło światła jest tylko przybliżeniem rzeczywistego zachowania, ponieważ rzeczywiste źródła emitują promieniowanie z pewnej skończonej powierzchni, czego przejawem jest fakt, że cienie nie mają ostrych granic. 
+\addimage{chapters/ch3/img/light_params.png}{scale=0.5}{Punktowe źródło światła w module \textsc{ViRay}. Światło jest emitowane w kierunku danym przez $\overrightarrow{l_{dir}}$ w stożku o kącie rozwarcia $\alpha$. Pełna intensywność występuje jedynie w mniejszym stożku o kącie rozwarcia $\beta < \alpha$}{Punktowe źródło światła w module \textsc{ViRay}}{ch3:img:light_params}
+{\color{red}OBRAZEK SCHEMAT - STOŻEK ŚWIETLNY}
+
+wpływ parametrów, obrazki
+\begin{itemize}
+\item stożek świetlny prostopadle do płaszczyzny, spot cutoff (z wykresem), wpływ pochylenia
+\item model lamberta
+\item model Blinna-Phonga, kolor rozbłysku i jego skupienie
+\item model Oren-Nayar, zmienność z sigma, czemu nie działa w realnym układzie
+\item model Torrance-Sparrow
+\item współczynnik Fresnela (kula i różna eta)
+\end{itemize}
+{\color{red}OBRAZKI - DUŻO OBRAZKÓW!!!!}
+
+
+- opisać co się dzieje w ray = ray' i wpływ wsp. Fresnela na intensywność odbitego światła
 
 \end{enumerate}
 
