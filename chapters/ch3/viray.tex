@@ -20,12 +20,12 @@ Użycie płytek ewaluacyjnych ma tę zaletę, iż wraz z nimi użytkownik otrzym
 \centering
 \caption{Porównanie podstawowych parametrów opisujących wykorzystane układy FPGA}
 \label{ch3:tab:fpga_comp}
-\begin{tabular}{|r|c|c|c|c|c|c|}
+\begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multirow{2}{*}{} & \multicolumn{4}{c|}{\textbf{Elementy składowe}} & \multirow{2}{*}{\textbf{Proces technologiczny}} & \multirow{2}{*}{\textbf{Koszt}} \\ \cline{2-5}
-                  & BRAM\footnote{Każdy element pamięci blokowej BRAM jest w stanie przechowywać 18~kb danych. W układach FPGA z serii UltraScale oraz UltraScale+ występuje również dodatkowy typ pamięci zwany \textit{UltraRAM}, URAM co w zamierzeniu pozwala przechowywać większe ilości danych bezpośrednio w układzie FPGA~(każdy blok URAM może pomieścić 288 kb danych), zmniejszając konieczność odwoływania się do zewnętrznych zasobów a przez to zwiększając wydajność przetwarzania. }      & DSP\footnote{Moduły DSP znajdują zastosowanie w przypadku akceleracji działań arytmetycznych, zwłaszcza stałopozycyjnych~\cite{DSP48E1}\cite{DSP48E2}. Pozwalają na efektywniejszą implementację i uzyskiwanie wyższych częstotliwości pracy, niż gdyby te same operacje miały zostać wykonane za pomocą LUT.}       & FF         & LUT        &                                                 &                                 \\ \hline
-\textbf{VC707}    & 2060      & 2800      & 607200     & 303600     & 28 nm                                           & 3495 \$                         \\ \hline
-\textbf{KCU116}   & 960       & 1824      & 433920     & 216960     & 16 nm                                           & 2995 \$                         \\ \hline
+\multirow{2}{*}{} & \multicolumn{4}{c|}{\textbf{Elementy składowe}} & \multirow{2}{*}{\textbf{Proces technologiczny}} \\ \cline{2-5}
+                  & BRAM\footnote{Każdy element pamięci blokowej BRAM jest w stanie przechowywać 18~kb danych. W układach FPGA z serii UltraScale oraz UltraScale+ występuje również dodatkowy typ pamięci zwany \textit{UltraRAM}, URAM co w zamierzeniu pozwala przechowywać większe ilości danych bezpośrednio w układzie FPGA~(każdy blok URAM może pomieścić 288 kb danych), zmniejszając konieczność odwoływania się do zewnętrznych zasobów a przez to zwiększając wydajność przetwarzania. }      & DSP\footnote{Moduły DSP znajdują zastosowanie w przypadku akceleracji działań arytmetycznych, zwłaszcza stałopozycyjnych~\cite{DSP48E1}\cite{DSP48E2}. Pozwalają na efektywniejszą implementację i uzyskiwanie wyższych częstotliwości pracy, niż gdyby te same operacje miały zostać wykonane za pomocą LUT.}       & FF         & LUT        &                                                                                 \\ \hline
+\textbf{VC707}    & 2060      & 2800      & 607200     & 303600     & 28 nm                                                                   \\ \hline
+\textbf{KCU116}   & 960       & 1824      & 433920     & 216960     & 16 nm                                                                \\ \hline
 \end{tabular}
 \end{table}
 \end{savenotes}
@@ -78,18 +78,18 @@ Wybór reprezentacji danych jest ważnym etapem tworzenia rzeczywistego systemu 
 \end{landscape}
 
 \subsection{Układ procesorowy}
-Działanie najprostszego procesora polega na kolejnym:
+Działanie najprostszego procesora polega na kolejnym~\cite{RISCV}:
 \begin{enumerate}
 \item Pobraniu instrukcji z listy i jej odkodowaniu.
 \item Wykonaniu operacji zgodnie z przekazanym opisem.
 \item Zapisaniu wyniku.
 \item Powrotu do kroku 1. ze zmienionym wskaźnikiem kolejnej instrukcji.
 \end{enumerate}
-Dostępny dla użytkownika zbiór dozwolonych instrukcji zależy od twórcy danego procesora i określa on swobodę dotyczącą jego programowania. Dla przykładu, w przypadku, gdy nie istnieje sprzętowa obsługa operacji pierwiastkowania, można dokonać emulacji tej funkcjonalności poprzez odpowiednią sekwencję operacji elementarnych~\cite{FAST_INV_SQRT}. Przeważnie czas wykonania emulowanej funkcji będzie dłuższy niż gdyby procesor udostępniał dedykowaną do tego instrukcję. Z punktu widzenia wydajności ważne jest też, aby procesor był zdolny przetwarzać instrukcje z interwałem równym 1 - wykorzystywana jest tutaj niezależność między poszczególnymi etapami przetwarzania instrukcji - z  możliwie najwyższą częstotliwością pracy. 
+Dostępny dla użytkownika zbiór dozwolonych instrukcji zależy od twórcy danego procesora i określa on swobodę dotyczącą jego programowania. Dla przykładu, w przypadku, gdy nie istnieje sprzętowa obsługa operacji pierwiastkowania, można dokonać emulacji tej funkcjonalności poprzez odpowiednią sekwencję operacji elementarnych~\cite{FAST_INV_SQRT}. Przeważnie czas wykonania emulowanej funkcji będzie dłuższy niż gdyby procesor udostępniał dedykowaną do tego instrukcję. Z punktu widzenia wydajności ważne jest też, aby procesor był zdolny przetwarzać instrukcje z interwałem jak najbliższym 1 - wykorzystywana jest tutaj niezależność między poszczególnymi etapami przetwarzania instrukcji - z  możliwie najwyższą częstotliwością pracy. 
 
 Jednym z kierunków rozwoju architektur procesorów jest poszukiwanie takiego rozwiązania, które udostępniałoby rozsądny zestaw instrukcji\footnote{Przez to sformułowanie należy rozumieć zachowanie balansu między możliwościami oddawanymi w ręce użytkownika a skomplikowaniem technologicznym.}, jednocześnie wymagając do jego implementacji jak najmniej zasobów sprzętowych. Warto w tym miejscu wspomnieć o projekcie \textit{iDEA}~\cite{iDEA}, który został stworzony od podstaw z myślą o maksymalnym wykorzystaniu znajdujących się w układach FPGA firmy Xilinx bloków DSP. Autorzy zauważyli, że elastyczność oferowana przez bloki DSP pozwala na implementację większości operacji bezpośrednio z ich użyciem. W efekcie uzyskano 32-bitowy procesor\footnote{Wszystkie dostępne instrukcje, za wyjątkiem mnożenia, przeprowadzane są na 32-bitowych liczbach całkowitych. Jedynie parametry mnożenia są ograniczone do 16 bitów~(wynik jest 32-bitowy), z uwagi na fakt, iż bloki DSP, w zależności od wersji, posiadają wbudowany blok dokonujący iloczynu czynników 25(27)- i 18-bitowego.} mogący pracować z częstotliwością ok.~400~MHz przy tym wymagający do jego implementacji jedynie 1~bloku~DSP, 2~BRAM oraz 335~LUT\footnote{Podane wartości dotyczą układu Virtex-6.}. Porównanie tych wartości z oferowanymi przez obecne układy FPGA zasobami~(tabela~\ref{ch3:tab:fpga_comp})  prowadzi do wniosku, że procesorów takiego lub bardziej rozbudowanego typu na jednym układzie można byłoby umieścić setki - otrzymując tym samym sieć procesorów zdolnych współbieżnie i stosunkowo szybko, jak na układy FPGA, przetwarzać dane. 
 
-Na bazie tej obserwacji do tej pory powstało wiele prototypowych systemów, których celem była realizacja śledzenia promieni w czasie rzeczywistym scen o dowolnej złożoności. Wartym wspomnienia jest tutaj cykl prac~\cite{Realtime_FPGA}\cite{RPU}\cite{Realtime_ASIC}, gdzie autorzy szczegółowo przedstawiają, w jaki sposób udało im się osiągnąć zamierzony efekt poprzez bardzo dokładną analizę zależności między podsystemami: pamięci, procesorów oraz jednostek analizujących przecięcia promieni z geometrią i wykorzystanych przez nie zasobów układu FPGA. Udostępniając użytkownikowi możliwość generowania promieni wtórnych do 4 pokolenia, programowanie sposobu oświetlenia powierzchni~(użytkownik mógł tworzyć własne BRDF) oraz przetwarzanie scen złożonych z milionów trójkątów rozwiązanie to potrafiło generować obraz z szybkością co najmniej 1 klatki obrazu na sekundę~(uwarunkowane jest to oczywiście poprzez rozdzielczość obrazu oraz złożoność sceny). Inne ciekawe rozwiązanie zostało zaproponowane w pracy~\cite{TRAX}. Jak podnoszą sami autorzy ich system był prostszy w budowie niż ten, o którym wspomniano wcześniej, jednak eksplorował w znacznie większym stopniu wykorzystanie hierarchicznej sieci prostych procesorów arytmetycznych. Pojedynczy rdzeń~(tych w układzie można było umieszczać dowolne ilości) składał się z 32 wątków zdolnych wykonywać podstawowe operacje na liczbach całkowitych oraz zmiennopozycyjnych jednak w obrębie rdzenia współdzieliły one między siebie jednostki odpowiedzialne za obliczanie iloczynów czy odwrotności liczby. Takie postępowanie było uzasadnione obserwacją, iż w kodzie programu operacje te są wykonywane odpowiednio rzadko i nie ma potrzeby, by każdy z wątków posiadał własne jednostki do przeprowadzania operacji arytmetycznych tego typu.
+Na bazie tej obserwacji do tej pory powstało wiele prototypowych systemów, których celem była realizacja śledzenia promieni w czasie rzeczywistym scen o dowolnej złożoności. Wartym wspomnienia jest tutaj cykl prac~\cite{Realtime_FPGA}\cite{RPU}\cite{Realtime_ASIC}, gdzie autorzy szczegółowo przedstawiają, w jaki sposób udało im się osiągnąć zamierzony efekt poprzez bardzo dokładną analizę zależności między podsystemami: pamięci, procesorów oraz jednostek analizujących przecięcia promieni z geometrią i wykorzystanych przez nie zasobów układu FPGA. Udostępniając użytkownikowi możliwość generowania promieni wtórnych do 4 pokolenia, programowanie sposobu oświetlenia powierzchni~(użytkownik mógł tworzyć własne BRDF) oraz przetwarzania scen złożonych z milionów trójkątów rozwiązanie to potrafiło generować obraz z szybkością co najmniej 1 klatki obrazu na sekundę~(uwarunkowane jest to oczywiście poprzez rozdzielczość obrazu oraz złożoność sceny). Inne ciekawe rozwiązanie zostało zaproponowane w pracy~\cite{TRAX}. Jak podnoszą sami autorzy ich system był prostszy w budowie niż ten, o którym wspomniano wcześniej, jednak eksplorował w znacznie większym stopniu wykorzystanie hierarchicznej sieci prostych procesorów arytmetycznych. Pojedynczy rdzeń~(tych w układzie można było umieszczać dowolne ilości) składał się z 32 wątków zdolnych wykonywać podstawowe operacje na liczbach całkowitych oraz zmiennopozycyjnych jednak w obrębie rdzenia współdzieliły one między sobą jednostki odpowiedzialne za obliczanie iloczynów czy odwrotności liczby. Takie postępowanie było uzasadnione obserwacją, iż w kodzie programu operacje te są wykonywane odpowiednio rzadko i nie ma potrzeby, by każdy z wątków posiadał własne jednostki do przeprowadzania operacji arytmetycznych tego typu.
 
 Cechą wspólną obu przedstawionych systemów śledzenia promieni jest to, że polegają one w znacznym stopniu na wydajności pojedynczego podsystemu przetwarzania instrukcji, który na dodatek musi być odpowiednio niewielki~(używać niewiele zasobów FPGA) aby można było współbieżnie przetwarzać wiele promieni. Co więcej ich twórcy podkreślają rolę języków opisu sprzętu w swobodnym kreowaniu sposobu przepływu danych w ich systemach.
 
@@ -97,7 +97,7 @@ Cechą wspólną obu przedstawionych systemów śledzenia promieni jest to, że 
 Niniejszy projekt układu procesorowego wykonano dla układu VC707 przy użyciu Vivado Design Suite 2017.2\footnote{Pliki projektu zostały umieszczone w repozytorium dostępnym pod adresem:
 \url{https://bitbucket.org/rtMasters/simpipeline/src/FINAL_SPU/}.}. Stworzony moduł IP zaprojektowano w taki sposób, aby jego uruchomienie z dostarczoną listą instrukcji oraz opcjonalnymi danymi zewnętrznymi skutkowało zapisem wartości do bufora klatki obrazu o podanych rozmiarach, stąd dla każdego piksela w pętli z zastosowaną dyrektywą \texttt{DATAFLOW} najpierw następuje wygenerowanie promienia o odpowiednim punkcie początkowym i kierunku, odpowiadającym rzutowaniu perspektywicznemu~(\texttt{CreateRay()}), potem następuje przetworzenie ciągu instrukcji (\texttt{ProcessInstructions()}), zwieńczone zapisem obliczonej wartości do bufora koloru~(\texttt{PutColor()}). Dalszy opis będzie skoncentrowany tylko na zagadnieniach związanych z przetwarzaniem rozkazów przez \texttt{ProcessInstructions()}.
 \paragraph{Rejestry procesora i architektura instrukcji}
-Z uwagi na fakt, iż śledzenie promieni wymaga przetwarzania danych wektorowych podjęta została decyzja o tym by procesor miał do swojej dyspozycji 16 $[0:15]$ wektorowych rejestrów wewnętrznych, z których każdy składa się z 4 32-bitowych elementów, co pozwoliłoby na przechowywanie większości potrzebnych danych. Każda instrukcja natomiast składa się z 4 wykonywanych jednocześnie podinstrukcji, których wynikiem w przypadku działań arytmetycznych jest skalar, którego wartość może być zapisana  do dowolnego rejestru wektorowego, jednakże indeks zapisu w rejestrze wektorowym jest jednakowy z indeksem podinstrukcji. Każda podinstrukcja jest opisana za pomocą 32-bitowej wartości, której rozmieszczenie i znaczenie poszczególnych bitów, w zależności od typu podinstrukcji, zostało ukazane na poniższym rysunku:
+Z uwagi na fakt, iż śledzenie promieni wymaga przetwarzania danych wektorowych podjęta została decyzja o tym by procesor miał do swojej dyspozycji 16 $[0:15]$ wektorowych rejestrów wewnętrznych, z których każdy składa się z 4 32-bitowych elementów, co pozwoliłoby na przechowywanie większości potrzebnych danych. Każda instrukcja natomiast składa się z 4 wykonywanych jednocześnie podinstrukcji, których wynikiem w przypadku działań arytmetycznych jest skalar, którego wartość może być zapisana  do dowolnego rejestru wektorowego, jednakże indeks zapisu w rejestrze wektorowym jest jednakowy z indeksem podinstrukcji. Każda podinstrukcja jest opisana za pomocą 32-bitowej wartości, której rozmieszczenie i znaczenie poszczególnych bitów, w zależności od typu podinstrukcji, zostało ukazane na poniższym schemacie:
 \addimage{chapters/ch3/img/instruction.png}{scale=0.43}{Rozmieszczenie bitów danych opisujących podinstrukcję}{Rozmieszczenie bitów danych opisujących podinstrukcję}{ch3:img:instruction}
 \begin{itemize}
 \item[] $[31:28]$ - \texttt{it} - opisuje rodzaj podinstrukcji, która ma być wykonana,
@@ -181,7 +181,7 @@ W wyniku przeprowadzonych prac badawczo-rozwojowych powstał \textsc{ViRay}, czy
 
 \addimage{chapters/ch3/img/viray_scheme.png}{scale=0.5}{Ogólna zasada działania modułu \textsc{ViRay}.}{Ogólna zasada działania modułu \textsc{ViRay}}{ch3:img:viray_scheme}
 
-Ogólna zasada działania stworzonego modułu z użyciem Vivado HLS została przedstawiona na rysunku~\ref{ch3:img:viray_scheme}. Na początku w funkcji głównej~(\texttt{Init()}) dokonywana jest inicjalizacja wewnętrznych struktur danych na podstawie parametrów dostarczonych do modułu, po czym następuje główna pętla przetwarzania~(\texttt{RenderScene*()}), w której przeprowadzane są obliczenia dotyczące wszystkich żądanych pikseli obrazu zgodnie z dostarczonym opisem sceny. Tutaj dla każdego nowo obliczanego piksela, najpierw tworzony jest promień pierwotny~(\texttt{CreatePrimaryRay()}), który jest następnie testowany na wypadek przecięcia z obiektami~(\texttt{VisibilityTest()}). Jeśli zderzenie nastąpi, obliczany jest kolor piksela~(\texttt{Shade()}) oraz generowany jest rozproszony promień wtórny względem pierwotnego~(\texttt{ray = ray'}). Ten staje się w kolejnej iteracji promieniem odpowiedzialnym za dostarczenie informacji o świetle rozproszonym. Ilość iteracji, a przez to głębokość śledzenia promieni związanych z kolorem danego piksela jest konfigurowalna. Finalny kolor piksela jest następnie zapisywany w buforze ramki~(\texttt{SaveColorToBuffer()}).
+Ogólna zasada działania stworzonego modułu z użyciem Vivado HLS została przedstawiona na rysunku~\ref{ch3:img:viray_scheme}. Na początku w funkcji głównej~(\texttt{Init()}) dokonywana jest inicjalizacja wewnętrznych struktur danych na podstawie parametrów dostarczonych do modułu, po czym następuje główna pętla przetwarzania~(\texttt{RenderScene*()}), w której przeprowadzane są obliczenia dotyczące wszystkich żądanych pikseli obrazu zgodnie z dostarczonym opisem sceny. Tutaj dla każdego nowo obliczanego piksela, najpierw tworzony jest promień pierwotny~(\texttt{CreatePrimaryRay()}), który jest następnie testowany na wypadek przecięcia z obiektami~(\texttt{VisibilityTest()}). Jeśli zderzenie nastąpi, obliczany jest kolor piksela~(\texttt{Shade()}) oraz generowany jest rozproszony promień wtórny względem pierwotnego~(\texttt{ray = ray'}). Ten staje się w kolejnej iteracji promieniem odpowiedzialnym za dostarczenie informacji o świetle rozproszonym. Ilość iteracji, a przez to głębokość śledzenia promieni związanych z kolorem danego piksela jest konfigurowalna. Finalny kolor piksela opisany za pomocą trzech składowych czerwonej, zielonej i niebieskiej~(\texttt{RGB}) jest następnie zapisywany w buforze ramki~(\texttt{SaveColorToBuffer()}).
 
 Modularność \textsc{ViRay}'a powoduje, że wiele kluczowych podsystemów biorących udział w tworzeniu finalnego obrazu może zostać ustalone za pomocą jednego pliku konfiguracyjnego~\texttt{typedefs.h}. Z jego pomocą można m. in.:
 \begin{itemize}
@@ -217,7 +217,7 @@ Wejście modułu \textsc{ViRay} stanowi zespół wskaźników na tablice danych 
 \item ustanawiają parametry związane ze źródłami światła,
 \item definiują położenie, orientację w przestrzeni i inne podstawowe parametry kamery~(obserwatora).
 \end{itemize}
-Dane te przychodzą do modułu w postaci 32 bitowych liczb~(zmiennopozycyjnych oraz całkowitoliczbowych). W przypadku tablic, dane przez nie zawierane są zlinearyzowane tzn. każda tablica przechowuje dane o $k$ wektorach. Każdy 32 bitowy element takiego wektora, zależnie od jego położenia w tym wektorze posiada odpowiednie znaczenie, które musi być odpowiednio zinterpretowane~(rysunek~\ref{ch3:img:decode}). Wymaga to zastosowania procedur, które na podstawie dostarczonych danych będą w stanie dokonać odpowiedniej inicjalizacji wewnętrznych struktur.
+Dane te przychodzą do modułu w postaci 32-bitowych liczb~(zmiennopozycyjnych oraz całkowitoliczbowych). W przypadku tablic, dane przez nie zawierane są zlinearyzowane tzn. każda tablica przechowuje dane o $k$ wektorach. Każdy 32-bitowy element takiego wektora, zależnie od jego położenia w tym wektorze, posiada odpowiednie znaczenie, które musi być odpowiednio zinterpretowane~(rysunek~\ref{ch3:img:decode}). Wymaga to zastosowania procedur, które na podstawie dostarczonych danych będą w stanie dokonać odpowiedniej inicjalizacji struktur wewnętrznych.
 \addimage{chapters/ch3/img/decode.png}{scale=0.5}{Przykład zapisu danych w tablicach wejściowych. Elementy \texttt{a, b, c, d} niosą odpowiednie informacje o \texttt{i}-tym elemencie struktury danych odpowiedzialnej za jedną z części opisu sceny}{Przykład zapisu danych w tablicach wejściowych}{ch3:img:decode}
 Alternatywnie, parametry wejściowe mogłyby zostać przekazane w formie tablic odpowiednich struktur, co uprościłoby proces inicjalizacji w module. W takiej sytuacji domyślnym zachowaniem Vivado HLS jest takie, że każdy element struktury staje się nowym portem danych.
 \begin{lstlisting}
@@ -228,17 +228,17 @@ typedef struct{
 \end{lstlisting}
 W sytuacji przedstawionej powyżej w wyniku syntezy zostaną utworzone oddzielne porty dla \texttt{s} oraz \texttt{t}. Jeśli \texttt{scale} jest tablicą, to \texttt{s}, \texttt{t} będą tak naprawdę portami odwołującymi się do tablic \texttt{s[]}, \texttt{t[]}. Stąd port odpowiadający \texttt{s[]} musiałby wskazywać na liniowy element przechowujący kolejne wartości \texttt{s} tablicy struktur \texttt{scale}. Takie rozwiązanie, choć działa, okazało się niepraktyczne w momencie obsługi modułu za pomocą mikrokontrolera. Zgodnie z dokumentacją Vivado HLS~\cite{UG902} możliwa jest jednak automatyczna linearyzacja struktur, skutkująca wygenerowaniem pojedynczego portu dla struktury za pomocą dyrektywy \texttt{DATA\_PACK}. Pomimo wielu testów, skuteczność tej dyrektywy nie została potwierdzona. Działa ona w przypadku, gdy struktura przechowuje dane całkowite oraz stałopozycyjne. Jeśli jednak zawarte są w niej wartości zmiennoprzecinkowe, odczytywane dane przez moduł nie są poprawne. 
 
-W związku z powyższym, odkodowanie parametrów wejściowych jest dokonywane bezpośrednio przez algorytm, w sposób ręczny, gdyż tylko w taki sposób można zapewnić poprawność odczytu danych przy zachowaniu rozsądnej~(tj. możliwie niskiej) liczby portów.
+W związku z powyższym, odkodowanie parametrów wejściowych jest dokonywane bezpośrednio przez algorytm, w sposób ręczny, gdyż tylko w taki sposób można zapewnić poprawność odczytu danych przy zachowaniu rozsądnej~(tj.~możliwie niskiej) liczby portów.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \item \underline{Model kamery i parametry obrazu}
 
-Jedynym udostępnianym przez \textsc{ViRay} modelem kamery jest kamera perspektywiczna~(rysunek~\ref{ch3:img:camera_model}). Opisana jest ona poprzez następujące parametry:
+Jedynym udostępnianym przez \textsc{ViRay} modelem kamery jest kamera perspektywiczna~(rysunek~\ref{ch3:img:camera_model}) o nieskończonej głębi ostrości. Opisana jest ona poprzez następujące parametry:
 \begin{itemize}
 \item pozycję obserwatora (\texttt{eyePosition)} zadaną w globalnym układzie współrzędnych,
 \item ortonormalną bazę wektorów $\vec{u}$, $\vec{v}$, $\vec{w}$ tworzących lokalny dla obserwatora prawoskrętny układ współrzędnych określający jego orientację w przestrzeni,
-\item odległość rzutni (\texttt{nearPlane}) od obserwatora w kierunku $-\vec{w}$ definiującą szerokość pola widzenia,
+\item odległość rzutni (\texttt{nearPlane}) od obserwatora w kierunku $-\vec{w}$ definiującą pole widzenia,
 \item parametr odpowiedzialny za powiększenie (\texttt{zoom}) - im jest on mniejszy, tym powiększenie większe.
 \end{itemize}
 Parametry rzutni tj. szerokość~(\texttt{WIDTH}) oraz wysokość~(\texttt{HEIGHT}) ramki obrazu muszą zostać podane w momencie syntezy HLS~(patrz tabela~\ref{ch3:tab:typedefs}). Kiedy rozpoczyna się przetwarzanie nowego piksela obrazu, wywoływana jest funkcja \texttt{GetCameraRayForPixel()}, która przyjmuje parametr zależny od współrzędnych piksela $[w; h] \in [0; \mathtt{WIDTH} - 1]\times[0; \mathtt{HEIGHT} - 1]$ - ten wpływa na kierunek propagacji nowego promienia pierwotnego.
@@ -282,7 +282,7 @@ for(unsigned n = 0; n < NUM_OF_PIXELS; ++n)
 \end{lstlisting}
 
 \end{enumerate}
-W przypadku (a) przetwarzanie pikseli obrazu zostało rozłożone na dwie pętle. Zewnętrzna dokonuje zmiany indeksu pionowego piksela \texttt{h}, zaś w wewnętrznej~(znajdującej się w funkcji \texttt{InnerLoop()}) z zastosowaną dyrektywą \texttt{PIPELINE} następuje obliczenie kolorów pełnego wiersza pikseli przy czym wszystkie piksele z wiersza zapisywane są do tymczasowego bufora pikseli, który jest w całości opróżniany do bufora ramki na koniec iteracji pętli zewnętrznej. Zachowanie takie pozwoliło wydzielić ciało zewnętrznej pętli jako region, który może zostać objęty dyrektywą \texttt{DATAFLOW}. Dane, czyli zawartość bufora tymczasowego, przepływają pomiędzy dwoma zadaniami tj.~obliczeniami, a zapisem do bufora ramki. Kiedy kończy się przetwarzanie danych w pętli wewnętrznej, dane przekazywane są do operacji zapisu \texttt{memcpy()} i w tym samym momencie wewnętrzna pętla może znowu rozpocząć pracę. Problem w takim przypadku, jest taki, iż kolejne obliczenia w pętli wewnętrznej nie stanowią kontynuacji dopiero co zakończonej funkcji \texttt{InnerLoop()} tzn. zanim zostanie wyliczony kolor pierwszego piksela w nowym wierszu minie czas równy opóźnieniu iteracji pętli wewnętrznej, który w finalnej wersji \textsc{ViRay}'a wynosi {\color{red}1331} cykli zegara. Biorąc pod uwagę, iż ramka obrazu w jakości Full HD ma wysokość równą 1080 daje to niemal $1,43\cdot 10^6$ nadmiarowych cykli zegara\footnote{Nadmiarowa ilość cykli wynikająca z każdorazowego rozpoczęcia funkcji \texttt{InnerLoop()} wynosi: 
+W przypadku (a) przetwarzanie pikseli obrazu zostało rozłożone na dwie pętle. Zewnętrzna dokonuje zmiany indeksu pionowego piksela \texttt{h}, zaś w wewnętrznej~(znajdującej się w funkcji \texttt{InnerLoop()}) z zastosowaną dyrektywą \texttt{PIPELINE} następuje obliczenie kolorów pełnego wiersza pikseli przy czym wszystkie piksele z wiersza zapisywane są do tymczasowego bufora pikseli, który jest w całości opróżniany do bufora ramki na koniec iteracji pętli zewnętrznej. Zachowanie takie pozwoliło wydzielić ciało zewnętrznej pętli jako region, który może zostać objęty dyrektywą \texttt{DATAFLOW}. Dane, czyli zawartość bufora tymczasowego, przepływają pomiędzy dwoma zadaniami tj.~obliczeniami, a zapisem do bufora ramki. Kiedy kończy się przetwarzanie danych w pętli wewnętrznej, dane przekazywane są do operacji zapisu \texttt{memcpy()} i w tym samym momencie wewnętrzna pętla może znowu rozpocząć pracę. Problem w takim przypadku, jest taki, iż kolejne obliczenia w pętli wewnętrznej nie stanowią kontynuacji dopiero co zakończonej funkcji \texttt{InnerLoop()} tzn. zanim zostanie wyliczony kolor pierwszego piksela w nowym wierszu minie czas równy opóźnieniu iteracji pętli wewnętrznej, który w finalnej wersji \textsc{ViRay}'a wynosi 1331 cykli zegara. Biorąc pod uwagę, iż ramka obrazu w jakości Full HD ma wysokość równą 1080 daje to niemal $1,43\cdot 10^6$ nadmiarowych cykli zegara\footnote{Nadmiarowa ilość cykli wynikająca z każdorazowego rozpoczęcia funkcji \texttt{InnerLoop()} wynosi: 
 \begin{equation}
 1331 - \mathtt{DESIRED\_INNER\_LOOP\_II} = 1331 - 8 = 1323
 \end{equation}
@@ -290,7 +290,7 @@ W przypadku (a) przetwarzanie pikseli obrazu zostało rozłożone na dwie pętle
 
 Najprostsze możliwe rozwiązanie, które można włączyć poprzez niezdefiniowanie \texttt{RENDER\_DATAFLOW\_ENABLE} w pliku konfiguracyjnym \texttt{typedefs.h} zostało przedstawione ideowo w przykładzie~(b). Implementuje ono przetwarzanie pikseli w pojedynczej pętli, której ciało zostało objęte dyrektywą \texttt{PIPELINE}. Indeksy piksela w ramce obrazu $[w;h]$ są obliczane na podstawie aktualnej wartości iteratora \texttt{n}, a kolor obliczonego piksela jest zapisywany do bufora ramki bezpośrednio po jego obliczeniu. Eliminuje to nie tylko problem z wielokrotnym rozpoczęciem pętli, ale również usuwa konieczność przechowywania wartości kolorów pikseli w tymczasowym buforze oszczędzając elementy BRAM. 
 
-Wyprzedzając w pewien sposób kolejność prezentacji poszczególnych elementów składowych pełnego systemu śledzenia promieni należy powiedzieć, iż rozwiązanie~(b) jest nieimplementowalne w układzie KCU116 z częstotliwością pracy uzasadniającą jego użycie\footnote{Rozwiązanie typu~(a) nawet pomimo nadmiarowych cykli zegara uzyskiwało znacznie krótsze czasy wykonania z uwagi na uzyskiwane wyższe częstotliwości pracy.}. 
+Wyprzedzając w pewien sposób kolejność prezentacji poszczególnych elementów składowych pełnego systemu śledzenia promieni należy powiedzieć, iż rozwiązanie~(b) jest nieimplementowalne w układzie KCU116 z częstotliwością pracy uzasadniającą jego użycie\footnote{Rozwiązanie typu~(a) nawet pomimo nadmiarowych cykli zegara uzyskiwało znacznie krótsze czasy wykonania z uwagi na odpowiednio wyższe częstotliwości pracy.}. 
 
 W związku z powyższym zaproponowano, aby zmniejszyć częstość wywoływania \texttt{InnerLoop()} w przypadku~(a). Pętla wewnętrzna każdorazowo musiałaby przetwarzać więcej niż jeden wiersz bufora ramki, a wielkość bufora tymczasowego uległaby odpowiedniemu zwiększeniu. Ilość cykli zegara, które są potrzebne na przeprowadzenie obliczeń wszystkich pikseli ramki obrazu dana jest w przybliżeniu poniższą zależnością:
 \begin{equation}
@@ -316,7 +316,7 @@ Przyjęcie $x=27$ pozwala zaoszczędzić $1,326\cdot 10^6$ cykli zegara względe
 \begin{equation}
 \mathtt{WIDTH}\cdot x \cdot 32\ \mathrm{b}.
 \end{equation}
-Stąd w finalnej wersji przyjęto, że $\mathtt{FRAME\_ROWS\_IN\_BUFFER}\equiv x = 20$ - taka wartość sprawia, że czas wykonania głównej pętli algorytmu \texttt{RenderScene*()} mierzony poprzez ilość cykli jest jedynie o {\color{red}5082} cykle gorszy od minimalnego. Dokonując samodzielnych zmian parametru \texttt{FRAME\_ROWS\_IN\_BUFFER} należy zapewnić, aby podana wartość była dzielnikiem \texttt{HEIGHT}.
+Stąd w finalnej wersji przyjęto, że $\mathtt{FRAME\_ROWS\_IN\_BUFFER}\equiv x = 20$ - taka wartość sprawia, że czas wykonania głównej pętli algorytmu \texttt{RenderScene*()} mierzony poprzez ilość cykli jest jedynie o 5082 cykle gorszy od minimalnego. Dokonując samodzielnych zmian parametru \texttt{FRAME\_ROWS\_IN\_BUFFER} należy zapewnić, aby podana wartość była dzielnikiem \texttt{HEIGHT}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -324,7 +324,7 @@ Stąd w finalnej wersji przyjęto, że $\mathtt{FRAME\_ROWS\_IN\_BUFFER}\equiv x
 
 Znalezienie przecięcia promienia z najbliższą  powierzchnią jest sednem całej metody śledzenia promieni. \textsc{ViRay} dokonuje testu przecięcia każdego promienia ze wszystkimi obiektami w scenie za pomocą funkcji \texttt{PerformHits()} oraz \texttt{PerformShadowHits()}. Nie jest to na pewno najbardziej optymalny sposób. Rzeczywiste systemy śledzenia promieni stosują struktury akcelerujące wykrywanie przecięć dzięki wielokrotnym podziałom przestrzeni na mniejsze podprzestrzenie. Aczkolwiek zgodnie z przyjętymi założeniami renderowane obiekty nie są złożone z siatek trójkątów, dzięki czemu każdy dostępny kształt geometryczny jest jednym obiektem w scenie. 
 
-Test przecięcia polega na rozwiązaniu równania typu $f(\vec{r}) = f(\vec{o} + t\vec{d})= 0$, którego rozwiązaniem jest dodatnia liczba $t \in [\mathtt{CORE\_BIAS};\mathtt{MAX\_DISTANCE})$~(patrz tabela~\ref{ch3:tab:typedefs}). Zastosowanie \texttt{CORE\_BIAS} wynika z faktu skończonej precyzji obliczeń.
+Test przecięcia polega na rozwiązaniu równania typu $f(\vec{r}) = f(\vec{o} + t\vec{d})= 0$, którego rozwiązaniem jest dodatnia liczba $t \in [\mathtt{CORE\_BIAS};\mathtt{MAX\_DISTANCE})$~(patrz tabela~\ref{ch3:tab:typedefs}). Zastosowanie \texttt{CORE\_BIAS} wynika z faktu skończonej precyzji obliczeń, które domyślnie wykonywane są za pomocą typu \texttt{float}~(\texttt{USE\_FLOAT}).
 
 \addimage{chapters/ch3/img/core_bias.png}{scale=0.5}{Wykorzystanie \texttt{CORE\_BIAS} w teście przecięcia. Z uwagi na precyzję obliczeń test przecięcia {\color{green}promienia} z {\color{red}powierzchnią} może skutkować tym, że obliczony punkt znajdzie się pod {\color{red}powierzchnią} zamiast na niej. W takiej sytuacji, promienie wtórne wychodzące z tego punktu będą dawać fałszywie pozytywne testy przecięcia {\color{gray}promienia} z {\color{red}powierzchnią}, chyba że zostanie zastosowany parametr tolerancji \texttt{CORE\_BIAS}}{Wykorzystanie \texttt{CORE\_BIAS} w teście przecięcia}{ch3:img:core_bias}
 
@@ -421,7 +421,7 @@ Przyjęcie takich parametrów dla powyższych powierzchni sprawia, że w lokalny
 \end{equation*}
 Fakt ten jest wykorzystywany podczas teksturowania\footnote{Oczywiście przypadkiem specjalnym jest płaszczyzna, dla której $\vec{p}'\in \mathcal{R}^3$.}.
 
-Funkcjonalność związana ze znalezieniem najbliższego obiektu na drodze promienia jest realizowana przez funkcje \texttt{PerformHits()} oraz \texttt{PerformShadowHits()}. Pierwsza z nich jest wywoływana dla promieni rozproszonych, zaś druga dla promieni cienia, sprawdzających czy między źródłem światła a znalezionym punktem na obiekcie nie znajduje się jakakolwiek przeszkoda. Utylizacja zasobów układu FPGA związana z pojedynczą instancją obu tych funkcji przedstawiona została w tabeli~\ref{ch3:tab:perform_hits_util}.
+Funkcjonalność związana ze znalezieniem najbliższego obiektu na drodze promienia jest realizowana przez funkcje \texttt{PerformHits()} i \texttt{PerformShadowHits()}. Pierwsza z nich jest wywoływana dla promieni pierwotnych i rozproszonych, zaś druga dla promieni cienia, sprawdzających czy między źródłem światła a znalezionym punktem na obiekcie nie znajduje się jakakolwiek przeszkoda. Utylizacja zasobów układu FPGA związana z pojedynczą instancją obu tych funkcji przedstawiona została w tabeli~\ref{ch3:tab:perform_hits_util}.
 
 \begin{table}[H]
 \centering
@@ -430,24 +430,30 @@ Funkcjonalność związana ze znalezieniem najbliższego obiektu na drodze promi
 \begin{tabular}{|r|c|c|c|c|}
 \hline
 \multicolumn{1}{|l|}{}                  & \textbf{BRAM} & \textbf{DSP} & \textbf{FF}    & \textbf{LUT}   \\ \hline
-\textbf{$\mathtt{PerformHits()}$}       & 0 (0\%)       & 109 (5,96\%) & 24930 (5,75\%) & 20297 (9,36\%) \\ \hline
+\textbf{$\mathtt{PerformHits()}$}       & 0 (0\%)       & 109 (5,96\%) & 58496 (13,48\%) & 19136 (8,82\%) \\ \hline
 \textbf{$\mathtt{PerformShadowHits()}$} & 0 (0\%)       & 107 (5,87\%) & 22887 (5,27\%) & 16121 (7,43\%) \\ \hline
 \end{tabular}
 \end{table}
 
-Tak wysokie wymagania względem układu FPGA związane są z faktem, iż funkcje te zostały poddane działaniu dyrektywy \texttt{PIPELINE} z interwałem równym 1 dla uzyskania maksymalnej wydajności obliczeń, przez co Vivado HLS ma ograniczone możliwości współdzielenia zasobów odpowiedzialnych za wykonanie poszczególnych operacji. To jednak nie wszystko. Ilość instancji tychże funkcji w \textsc{ViRay}'u zależy od:
+
+Tak wysokie wymagania tychże funkcji względem układu FPGA związane są z faktem, iż:
+\begin{itemize}
+\item funkcje te zostały poddane działaniu dyrektywy \texttt{PIPELINE} z interwałem równym 1 dla uzyskania maksymalnej wydajności obliczeń, przez co Vivado HLS ma ograniczone możliwości współdzielenia zasobów odpowiedzialnych za wykonanie poszczególnych operacji,
+\item każdy dostępny typ obiektu geometrycznego wymaga dokonania zespołu operacji arytmetycznych koniecznych do pełnego rozwiązania testu przecięcia, które są dla niego charakterystyczne\footnote{Chociaż kule, walce i stożki łączy to, iż wymagają rozwiązania równania kwadratowego, jednak współczynniki $a, b, c$ tego równania muszą być dla nich obliczone w różny sposób.}
+\end{itemize}
+To jednak nie wszystko. Ilość instancji tychże funkcji\footnote{W zaimplementowanym module funkcja realizowana jest za pomocą zespołu elementów logicznych. Liczba instancji stanowi, ile identycznych zespołów znajdzie się w układzie.} w \textsc{ViRay}'u zależy od:
 \begin{itemize}
 \item maksymalnej ilości obiektów w scenie \texttt{OBJ\_NUM},
 \item interwału między kolejnymi pikselami obrazu \texttt{DESIRED\_INNER\_LOOP\_II},
 \item głębokości śledzenia promieni \texttt{RAYTRACING\_DEPTH},
-\item maksymalnej ilości świateł w scenie \texttt{LIGHTS\_NUM},
+\item maksymalnej ilości świateł w scenie \texttt{LIGHTS\_NUM}.
 \end{itemize}
-W najprostszym przypadku, gdy \texttt{OBJ\_NUM} = \texttt{DESIRED\_INNER\_LOOP\_II}, a promieniami rozproszonymi są jedynie promienie odbite:
+W najprostszym przypadku, gdy \texttt{OBJ\_NUM} = \texttt{DESIRED\_INNER\_LOOP\_II}, a promieniami rozproszonymi są jedynie promienie odbite, liczba instancji dana jest poprzez:
 \begin{align*}
 \#\mathtt{PerformHits()} &= \mathtt{RAYTRACING\_DEPTH},\\
 \#\mathtt{PerformShadowHits()} &= \mathtt{RAYTRACING\_DEPTH} \cdot \left(\mathtt{LIGHTS\_NUM} - 1\right).
 \end{align*}
-Z tego właśnie powodu \textsc{ViRay} w finalnej wersji nie dokonuje obliczeń związanych z promieniami załamanymi, a jedynie rozproszonymi i cienia przy ilości świateł w scenie ograniczonej do dwóch~(jedno otaczające i jedno punktowe) - w ten sposób obie te funkcje łącznie konsumują 1/3 wszystkich LUT układu KCU116. 
+Z tego właśnie powodu \textsc{ViRay} w finalnej wersji nie dokonuje obliczeń związanych z promieniami załamanymi, a jedynie rozproszonymi i cienia przy ilości świateł w scenie ograniczonej do dwóch~(jedno otaczające i jedno punktowe). W ten sposób obie te funkcje łącznie konsumują 32,5~\% LUT oraz 37,5~\% FF układu KCU116~(wg. raportu po syntezie HLS). 
 
 W tym miejscu należy również podnieść bardzo istotną kwestię związaną z wielkością \texttt{RAYTRACING\_DEPTH}. Aby mieć możliwość generowania informacji o odbiciach powstających na powierzchni musi być spełniona następująca zależność:
 \begin{equation*}
@@ -456,6 +462,7 @@ W tym miejscu należy również podnieść bardzo istotną kwestię związaną z
 Podczas prób implementacji wstępnych wersji \textsc{ViRay}'a na układzie VC707 możliwe było zastosowanie jedynie $\mathtt{RAYTRACING\_DEPTH} = 1$, podczas gdy KCU116 pozwoliło osiągnąć $\mathtt{RAYTRACING\_DEPTH} = 2$. Właśnie ten fakt przesądził o zmianie platformy docelowej, pomimo teoretycznie gorszych parametrów związanych z ilością dostępnych elementów~(tabela~\ref{ch3:tab:fpga_comp}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \item \underline{Cieniowanie - funkcja \texttt{Shade()}}
 
@@ -466,24 +473,146 @@ Zadaniem funkcji cieniującej \texttt{Shade()} jest określenie koloru piksela w
 \item informacji o teksturze, która ma zostać nałożona na obiekt.
 \end{itemize} 
 
-Poniższe równanie będące uogólnieniem równania~\eqref{ch1:eq:shading_equation} opisuje, w jaki sposób liczona jest radiancja w danym punkcie z uwzględnieniem wszystkich źródeł światła~(operator $*$ oznacza mnożenie $i$-tych składowych obu operandów ze sobą)~\cite{RTFTGU}:
+Poniższe równanie będące uogólnieniem równania~\eqref{ch1:eq:shading_equation} opisuje, w jaki sposób liczona jest radiancja w danym punkcie z uwzględnieniem wszystkich źródeł światła dla $k$-tego promienia~(operator $*$ oznacza mnożenie $i$-tych składowych obu operandów ze sobą)~\cite{RTFTGU}:
 \begin{align}
-L_o(\vec{p}, \vec{\omega_o}) &= k_a(\vec{p}) * L_a\nonumber\\
-&+ \sum_{i=1}^{\mathtt{LIGHTS\_NUM}} k_d(\vec{p}) * L_d(\vec{p}, \vec{\omega_o}) \cdot c_i\cdot s_i\cdot s_{cf_i} \nonumber\\
-&+ \sum_{i=1}^{\mathtt{LIGHTS\_NUM}} k_s(\vec{p}) * L_s(\vec{p}, \vec{\omega_o}) \cdot c_i\cdot s_i\cdot s_{cf_i},
+\label{ch3:eq:shading_equation_general}
+L_{o_k}(\vec{p}, \vec{\omega_o}) \equiv L_o(\vec{p}, \vec{\omega_o}) &= k_a(\vec{p})c_a(\vec{p}) * L_a\nonumber\\
+&+ \sum_{i=1}^{\mathtt{LIGHTS\_NUM}} k_d(\vec{p})c_d(\vec{p}) * L_d(\vec{p}, \vec{\omega_o}) \cdot c_i\cdot s_i\cdot s_{cf_i} \nonumber\\
+&+ \sum_{i=1}^{\mathtt{LIGHTS\_NUM}} k_s(\vec{p})c_s(\vec{p}) * L_s(\vec{p}, \vec{\omega_o}) \cdot c_i\cdot s_i\cdot s_{cf_i},
 \end{align}
 gdzie:
 \begin{itemize}
-\item $k_a, k_d, k_s \in [0, 1]^3$ - współczynniki określające stopień interakcji materiału z daną składową \texttt{RGB} światła odpowiednio: otoczenia, rozproszonego i odbitego zwierciadlanie,
+\item $k_a(\vec{p}), k_d(\vec{p}), k_s(\vec{p}) \in [0, 1]$ - współczynniki określające udział światła otoczenia, rozproszonego i odbitego zwierciadlanie w tworzeniu radiancji,
+\item $c_a(\vec{p}), c_d(\vec{p}), c_s(\vec{p}) \in [0, 1]^3$ - kolor materiału w świetle otaczającym, rozproszonym i odbitym zwierciadlanie,
 \item $L_a, L_d(\vec{p}, \vec{\omega_o}), L_s(\vec{p}, \vec{\omega_o})$ - BRDF dla światła otoczenia, rozproszonego i odbitego zwierciadlanie,
 \item $c_i = \frac{\max\left(\vec{n} \cdot \frac{\vec{p} - \vec{l_i}}{|\vec{p} - \vec{l_i}|}  , 0\right)}{|\vec{p} - \vec{l_i}|^2} $ - współczynnik związany z kwadratowym zanikiem oraz orientacją względem kierunku padania światła~($\vec{l_i}$ - położenie źródła światła),
 \item $s_i\in\lbrace 0, 1 \rbrace$ - wynik testu zasłaniania (\texttt{ShadowVisibilityTest()}) $i$-tego źródła światła przez obiekty sceny, jeśli $s_i=0$ punkt $\vec{p}$ jest w cieniu,
 \item $s_{cf_i}\in[0, 1]$ - współczynnik determinujący czy punkt $\vec{p}$ znajduje się w stożku świetlnym źródła umieszczonego w $\vec{l_i}$.
 \end{itemize}
 
-W scenie renderowanej za pomocą \textsc{ViRay}'a, można umieszczać \textit{punktowe źródła światła} wysyłające promieniowanie w określonym przez użytkownika stożku świetlnym - ten zadany jest przez kierunek główny $\overrightarrow{l_{dir}}$, oraz kosinus połowy kąta rozwarcia $\cos \frac{\alpha}{2}$~(rysunek~\ref{ch3:img:light_params}). Dodatkowy kąt $\beta$ decyduje o kosinusie $\cos\frac{\beta}{2}$, którego przekroczenie będzie wpływać na przybieranie przez $s_{cf_i}$ wartości pośrednich między 0 a 1. Naturalnie punktowe źródło światła jest tylko przybliżeniem rzeczywistego zachowania, ponieważ rzeczywiste źródła emitują promieniowanie z pewnej skończonej powierzchni, czego przejawem jest fakt, że cienie nie mają ostrych granic. 
+Natomiast całkowita radiancja w danym punkcie $L_{o_t}(\vec{p}, \vec{\omega_o})$ wynikająca z wielokrotnych rozproszeń~(odbić) promieni dana jest wzorem:
+\begin{equation}
+L_{o_t}(\vec{p}, \vec{\omega_o}) = \sum_{k=1}^{\mathtt{RAYTRACING\_DEPTH}}\left(\prod_{l=1}^k r_{l-1} \right)L_{o_k}(\vec{p}, \vec{\omega_o}), \qquad r_0 = 1,
+\label{ch3:eq:total_radiance}
+\end{equation}
+gdzie:
+\begin{itemize}
+\item[] $r_{l-1}$ jest współczynnikiem odbicia od powierzchni, na której $l$-ty promień ma swój początek~(dla promieni pierwotnych $k=1$: $r_0=1$). 
+\end{itemize}
+
+W scenie renderowanej za pomocą \textsc{ViRay}'a, oprócz globalnego bezkierunkowego źródła światła otaczającego, można umieszczać \textit{punktowe źródła światła} wysyłające promieniowanie w określonym przez użytkownika stożku świetlnym - ten zadany jest przez kierunek główny $\overrightarrow{l_{dir}}$, oraz kosinus połowy kąta rozwarcia $\cos \frac{\alpha}{2}$~(rysunek~\ref{ch3:img:light_params}). Dodatkowy kąt $\beta$ decyduje o kosinusie $\cos\frac{\beta}{2} \geq \cos\frac{\alpha}{2}$, którego przekroczenie będzie wpływać na przybieranie przez $s_{cf_i}$ wartości pośrednich między 0 a 1:
+\begin{equation}
+s_{cf_i} = \max\left(\min\left(  \frac{\max\left(\vec{n} \cdot \frac{\vec{p} - \vec{l_i}}{|\vec{p} - \vec{l_i}|}  , 0\right) - \cos\frac{\alpha}{2}}{\cos\frac{\beta}{2} - \cos\frac{\alpha}{2}}, 1\right), 0\right)
+\end{equation}
+Wpływ położenia płaszczyzny względem kierunku światła $\overrightarrow{l_{dir}}$ oraz przyjętego kąta $\frac{\beta}{2}$ na jej oświetlenie prezentuje rysunek~\ref{ch3:img:light_comp}.
+
+Naturalnie punktowe źródło światła jest tylko przybliżeniem rzeczywistego zachowania, ponieważ rzeczywiste źródła emitują promieniowanie z pewnej skończonej powierzchni, czego przejawem jest fakt, że cienie nie mają ostrych granic. 
 \addimage{chapters/ch3/img/light_params.png}{scale=0.5}{Punktowe źródło światła w module \textsc{ViRay}. Światło jest emitowane w kierunku danym przez $\overrightarrow{l_{dir}}$ w stożku o kącie rozwarcia $\alpha$. Pełna intensywność występuje jedynie w mniejszym stożku o kącie rozwarcia $\beta < \alpha$}{Punktowe źródło światła w module \textsc{ViRay}}{ch3:img:light_params}
-{\color{red}OBRAZEK SCHEMAT - STOŻEK ŚWIETLNY}
+
+\input{chapters/ch3/light_params}
+
+Część światła padającego na obiekt, zgodnie z równaniem~\eqref{ch3:eq:shading_equation_general} może się na nim rozproszyć lub odbić w sposób zwierciadlany\footnote{Przypadek kierunkowego odbicia rozproszonego nie jest rozpatrywany przez \textsc{ViRay}.}. W pierwszym przypadku rozproszenie to jest przybliżane przez model Orena-Nayara~\eqref{ch1:eq:ON_BRDF}, którego przypadkiem granicznym, gdy $\sigma^2 = 0$, jest model Lamberta~\eqref{ch1:eq:LambertBRDF}. Wpływ parametru szorstkości $\sigma^2$ na oświetlenie powierzchni został zobrazowany na rysunku~\ref{ch3:img:diffuse_params}. Na jego podstawie można stwierdzić, iż wraz ze wzrostem $\sigma^2$ rozkład oświetlenia staje się bardziej równomierny, a maksimum jasności ma mniejszą wartość. 
+
+\input{chapters/ch3/diffuse_params}
+
+Drugim z komponentów oświetlenia jest odbicie zwierciadlane, które w \textsc{ViRay}'u można modelować za pomocą modelu Blinna-Phonga~\eqref{ch1:eq:PhongBRDFNormalized} bądź też Torrance'a-Sparrowa~\eqref{ch1:eq:TorranceSparrowFull}. Decyzja o rezygnacji z modelu Phonga na rzecz Blinna-Phonga podyktowana została tym, że model Blinna-Phonga oraz Torrance'a-Sparrowa współdzielą ze sobą obliczenia związane z czynnikiem rozkładu orientacji mikrościanek wokół wektora połówkowego $D(\vec{\omega_h})$~\eqref{ch1:eq:TorranceSparrow_D}, przez co implementacja tego pierwszego nie wiąże się z wykorzystaniem dodatkowych zasobów układu FPGA. Wpływ parametru skupienia rozbłysku $e \in \mathcal{N}$ w modelu Blinna-Phonga został zaprezentowany na przykładzie oświetlenia powierzchni walcowej~(rysunek~\ref{ch3:img:blinn_phong}).
+\input{chapters/ch3/blinn_phong_params}
+
+Analizę działania modelu Torrance'a-Sparrowa najłatwiej dokonać w połączeniu ze sprawdzeniem, jak różne wartości współczynnika załamania $\eta$~(oraz absorpcji $k$ dla przewodników) wpływają na zdolność odbijania promieni od powierzchni. Wynika to z faktu, iż model Torrance'a-Sparrowa ingeruje bezpośrednio w wartość współczynnika odbicia $r_{l-1}$, który zależy tu od przestrzennej relacji między wektorem połówkowym $\vec{\omega_h}$ a kątem $\vec{\omega_i}$~(w przeciwieństwie do typowej zależności między wektorem normalnym $\vec{n}$ a $\vec{\omega_i}$).
+
+\input{chapters/ch3/reflection_params}
+
+\item \underline{Teksturowanie powierzchni}
+
+Teksturowanie powierzchni pozwala uatrakcyjnić wizualnie obiekty bez konieczności zwiększania ich złożoności geometrycznej poprzez nadanie punktom znajdującym się na obiekcie odpowiednich kolorów\footnote{Tak naprawdę tekstura może być odpowiedzialna nie tylko za nadanie konkretnego koloru obiektowi, ale może również modulować wektory normalne, współczynniki załamania oraz wiele innych parametrów mających wpływ na ostateczny odbiór obiektu przez obserwatora.}. \textsc{ViRay} pozwala nadać obiektowi pożądaną teksturę, której dane zapisane są w postaci mapy bitowej albo mapy szarości. W tym drugim przypadku, odcień szarości $\mathtt{mix}\in[0, 1]$ decyduje o stopniu mieszania między dwoma wybranymi przez użytkownika kolorami:
+\begin{equation}
+\mathtt{color = color1\cdot mix + color2\cdot\left(1 - mix \right)}.
+\end{equation}
+
+Problem teksturowania sprowadza się do nałożenia dwuwymiarowej mapy pikseli $\mathtt{w}\times\mathtt{h}$ na powierzchnię obiektu trójwymiarowego, który może wprowadzać zniekształcenie w jej odwzorowaniu. Z tego powodu współrzędne na mapie pikseli transformowane są liniowo do przestrzeni $[u, v] \in [0, 1]^2$~(rysunek~\ref{ch3:img:texture_mapping}) zaś współrzędne punktu przecięcia promienia z obiektem w przestrzeni obiektu $\vec{p}'\in[-1, 1]^3$ poddawane są innej~(w ogólnym przypadku nieliniowej) transformacji do przestrzeni $[u, v]$. 
+
+
+\addimage{chapters/ch3/img/texture_mapping.png}{width=0.95\textwidth}{Transformacja pozycji piksela z przestrzeni tekstury do współrzędnych $[u, v] \in [0, 1]^2$. Tekstura na podstawie~\cite{EARTH_NASA}}{Transformacja pozycji piksela do współrzędnych u, v}{ch3:img:texture_mapping}
+
+Najprostszym sposobem transformacji współrzędnych punktu $\vec{p}'$ do $[u,v]$ jest transformacja liniowa zwana \textit{mapowaniem prostokątnym}:
+\begin{align*}
+u &= \frac{p_x' + 1}{2},\\
+v &= \frac{p_z' + 1}{2}.
+\end{align*}
+Dostępność dodatkowych trybów mapowania w \textsc{ViRay}'u jest sterowana poprzez \texttt{ADVANCED\_TEXTURE\_MAPPING\_ENABLE}. Definicja ta daje dostęp do odwzorowania \textit{cylindrycznego}:
+\begin{align*}
+u &= \frac{\arctan\frac{p_x'}{p_z'}}{2\pi},\\
+v &= \frac{v_y' + 1}{2}
+\end{align*} 
+oraz \textit{sferycznego}:
+\begin{align*}
+u &= \frac{\arctan\frac{p_x'}{p_z'}}{2\pi},\\
+v &= 1 - \frac{\arccos y}{\pi}.
+\end{align*} 
+
+Wpływ trzech wymienionych powyżej trybów na finalne odwzorowanie tekstury na powierzchni różnych obiektów został przedstawiony na rysunku~\ref{ch3:img:texture_proj}.
+
+\input{chapters/ch3/texture_params}
+
+Z zastosowaniem odwzorowania cylindrycznego oraz sferycznego wiąże się konieczność obliczenia odpowiednich kątów na podstawie współrzędnych punktu $\vec{p}'$ z użyciem funkcji cyklometrycznych. Wykorzystanie w tym celu wprost funkcji \texttt{hls::atan2()} oraz \texttt{hls::acos()} dostarczanych wraz z Vivado HLS rodzi jednak kłopoty związane z użyciem przez nie dużej ilości zasobów układu~(tabela~\ref{ch3:tab:atan_acos}), co w praktyce mogłoby oznaczać niemożliwość implementacji odwzorowania cylindrycznego oraz sferycznego w końcowym systemie śledzenia promieni. Chcąc temu zaradzić \textsc{ViRay} może korzystać z obliczeń przybliżonych w celu znalezienia aproksymacji wartości funkcji \texttt{atan2()} oraz \texttt{acos()}. Są to odpowiednio \texttt{ViRayUtils::Atan2()} oraz \texttt{ViRayUtils::Acos()}, które włączane są poprzez definicje \texttt{FAST\_ATAN2\_ENABLE} oraz \texttt{FAST\_ACOS\_ENABLE}.
+
+\input{chapters/ch3/atan_acos_table}
+
+
+\begin{itemize}
+\item \texttt{ViRayUtils::Atan2()}
+
+Funkcja ta opiera swoje działanie na następującej obserwacji~\cite{ATAN_APPROX}:
+
+\begin{equation}
+\arctan(z)\approx 0,9724z - 0,1919z^3,\qquad z=\frac{y}{x}\in[-1, 1]
+\end{equation}
+oraz tożsamości:
+\begin{equation}
+\arctan(z) = \frac{\pi}{2} - \arctan\left(z^{-1}\right), \mathrm{gdy} \left| z \right| > 1
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\subfigure{\includegraphics[width=0.8\textwidth]{chapters/ch3/img/atan2_error.png}}
+\subfigure{\includegraphics[width=0.8\textwidth]{chapters/ch3/img/atan2_relative_error.png}}
+\caption[Błąd bezwzględny oraz względny generowany przez przybliżoną implementację funkcji \texttt{atan2()}]{Błąd bezwzględny oraz względny generowany przez przybliżoną implementację funkcji \texttt{atan2()}. Maksymalny błąd wynosi $0,00496\ \mathrm{rad}$, co przekłada się w najgorszym przypadku na odstępstwo od dokładnego wyniku równe 2,8 \%. Różnice te praktycznie nie wpływają na sposób odwzorowania tekstury na powierzchni}
+\label{ch3:img:atan2_error}
+\end{figure}
+
+
+\item \texttt{ViRayUtils::Acos()}
+
+W tym przypadku rozwiązanie przybliżone oparte jest o tablicę 33 wartości, będących dokładnymi wynikami funkcji \texttt{acos()} dla równo oddalonych od siebie parametrów $x_i \in [0, 1]$. Dla parametru wejściowego $x'$ następuje określenie najbliższych mu parametrów $x_i$ oraz $x_{i+1}$, dla których znane są dokładne wartości funkcji. Następnie dokonywana jest interpolacja liniowa pomiędzy tymi wartościami, zależna od odległości $x'$ od $x_i$ oraz $x_{i+1}$. W przypadku, gdy $x' < 0$ wykorzystywana jest tożsamość:
+\begin{equation}
+\arccos(x') = \pi - \arccos(|x'|).
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\subfigure{\includegraphics[width=0.8\textwidth]{chapters/ch3/img/acos_error.png}}
+\subfigure{\includegraphics[width=0.8\textwidth]{chapters/ch3/img/acos_relative_error.png}}
+\caption[Błąd bezwzględny oraz względny generowany przez przybliżoną implementację funkcji \texttt{acos()}]{Błąd bezwzględny oraz względny generowany przez przybliżoną implementację funkcji \texttt{acos()}. Maksymalny błąd wynosi $0.0624\ \mathrm{rad}$, który występuje w okolicach 0 oraz $\pi$ radianów, a związane jest to z faktem, iż funkcja \texttt{acos()} przejawia tam największe odstępstwa od liniowości~($\frac{\mathrm{d}(\arccos(x))}{\mathrm{d}x} = \frac{1}{\frac{\mathrm{d}\cos(x)}{\mathrm{d}x}} = -\frac{1}{\sin(x)}$). Mimo tej jednej niedogodności, zastosowane przybliżenie sprawdza się podczas teksturowania obiektów}
+\label{ch3:img:acos_error}
+\end{figure}
+
+\end{itemize}
+
+Algorytmy dokonujące teksturowania pozwalają również dokonywać translacji tekstury oraz jej skalowania poprzez powielanie. Możliwości te zostały zilustrowane na rysunku~\ref{ch3:img:texture_transform}.
+
+\addimage{chapters/ch3/img/texture_proj/texture_transform.png}{width=0.9\textwidth}{Translacja oraz skalowanie tekstury. a) Kwadrat z oryginalną teksturą. b) Tekstura została przesunięta o 0.1 jednostki w lewo oraz 0.2 jednostki w dół. c) Oryginalna tekstura została przeskalowana w taki sposób, że została powielona dwukrotnie w kierunku $u$ oraz trzykrotnie w kierunku $v$~(możliwe są również niecałkowite wartości skali). d) Oryginalny obiekt a) został poddany skalowaniu co wpłynęło również na deformację tekstury}{Translacja oraz skalowanie tekstury}{ch3:img:texture_transform}
+
+Tekstury w \textsc{ViRay}'u są całkowicie przechowywane w pamięci BRAM układu FPGA\footnote{Własność ta wynika z faktu, iż Vivado HLS nie pozwala dokonywać asynchronicznych, względem potoku przetwarzania, operacji odczytu danych z pamięci zewnętrznej.}\footnote{Możliwe jest również poinstruowanie Vivado HLS, aby pamięć tekstur znalazła się w układach UltraRAM za pomocą definicji \texttt{TEXTURE\_URAM\_STORAGE}. Rozwiązanie to jest jednakże niezalecane z uwagi na fakt, iż bloki UltraRAM są zlokalizowane w układzie FPGA tzn. nie są tak bardzo rozproszone po całym układzie jak bloki BRAM, w wyniku czego na etapie implementacji dochodzi do nadmiernego stłoczenia, czyli lokalnego przeciążenia sieci połączeń, co prowadzi do niepowodzenia implementacji.}. Fakt ten wymusza stosowanie tekstur o odpowiednio niskiej rozdzielczości~(standardowo \textsc{ViRay} udostępnia miejsce na $256^2$ 32-bitowych wartości, patrz \texttt{TEXT\_PAGE\_SIZE}). W takim wypadku nałożony na powierzchnię obraz może być poszarpany z wyraźnymi krawędziami pomiędzy pikselami tekstury. Zdefiniowanie w pliku konfiguracyjnym \texttt{BILINEAR\_TEXTURE\_FILTERING\_ENABLE} za cenę rozmycia szczegółów tekstury pozwala wyeliminować wyraźne granice między pikselami~(rysunek~\ref{ch3:img:bilinear_filtering}). 
+
+\addimage{chapters/ch3/img/bilinear_filtering.png}{width=0.8\textwidth}{Algorytm filtracji biliniowej tekstury. Zaznaczony na {\color{red}czerwono} punkt $\vec{p}'$ na powierzchni obiektu odpowiada środkowemu pikselowi tekstury, jednak nie wypada on w samym centrum obszaru~(tzw. \textit{centroid}). W kierunku $u$ oraz $v$ znajdowane są najbliższe piksele tekstury przylegające do piksela centralnego i najbliższe $\vec{p}'$. Kolor tekstury w $\vec{p}'$ obliczony zostaje na podstawie kolorów pikseli tekstury i ich wag, zależnych od odległości $\vec{p}'$ od centroidów wzdłuż osi $u$ oraz $v$, jako interpolacja liniowa w kierunku $u$ oraz $v$}{Algorytm filtracji biliniowej tekstury}{ch3:img:bilinear_filtering}
+
+\item \underline{Zapis finalnego koloru piksela - \texttt{SaveColorToBuffer()}}
+
+\input{chapters/ch3/complexity_params}
+
+
+
+
 
 wpływ parametrów, obrazki
 \begin{itemize}
@@ -495,9 +624,6 @@ wpływ parametrów, obrazki
 \item współczynnik Fresnela (kula i różna eta)
 \end{itemize}
 {\color{red}OBRAZKI - DUŻO OBRAZKÓW!!!!}
-
-
-- opisać co się dzieje w ray = ray' i wpływ wsp. Fresnela na intensywność odbitego światła
 
 \end{enumerate}
 

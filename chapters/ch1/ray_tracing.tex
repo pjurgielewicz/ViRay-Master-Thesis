@@ -572,6 +572,7 @@ Dość powszechnym podejściem w symulacjach jest przybliżenie powierzchni mate
 
 Jednym z takich modeli, który bierze pod uwagę fizyczne właściwości powierzchni i modeluje światło rozproszone jest model wprowadzony i potwierdzony eksperymentalnie przez Orena i Nayara~\cite{Oren94generalizationof}\cite{Nayar95visualappearance}. Twórcy przybliżyli powierzchnię poprzez zbiór V-kształtnych i symetrycznych rowków, które indywidualnie zachowują się tak jak to wynika z modelu Lamberta, o rozkładzie orientacji opisanym poprzez rozkład Gaussa. Stopień szorstkości kontrolowany jest parametrem $\sigma^2$ będący wariancją rozkładu. Pełen model charakteryzuje się dość wysoką złożonością obliczeniową, jednak jego Twórcy na podstawie analizy wpływu poszczególnych składowych na wynik końcowy zaproponowali uproszczoną i stosowaną w praktyce formę:
 \begin{align}
+\label{ch1:eq:ON_BRDF}
 f_s(\vec{p}, \vec{\omega_i}(\phi_i, \theta_i), \vec{\omega_o}(\phi_o, \theta_o)) &= \frac{k_d(\vec{p})}{\pi}(A + B\max(0, \cos(\phi_i - \phi_o))\sin\alpha\tan\beta),\\
 A &= 1 - \frac{\sigma^2}{2(\sigma^2 + 0.33)},\\
 B &= \frac{0.45\sigma^2}{\sigma^2 + 0.09},\\
@@ -632,6 +633,7 @@ Składa się na nią:
 \begin{itemize}
 \item[] $D(\vec{\omega_h})$ - czynnik rozkładu orientacji mikrościanek, który w różnych publikacjach można być opisany poprzez różne funkcje rozkładu (np. Gaussa). W tym konkretnym przypadku posługiwać będziemy się rozkładem Blinna znanym już z dyskusji o modelu Phonga~\eqref{ch1:eq:PhongBRDFNormalized}:
 \begin{equation}
+\label{ch1:eq:TorranceSparrow_D}
 D(\vec{\omega_h}) = c(\vec{\omega_h}\cdot\vec{n})^e = \frac{e + 2}{2\pi}(\vec{\omega_h}\cdot\vec{n})^e.
 \end{equation}
 \item[] $G(\vec{\omega_o}, \vec{\omega_i})$ - czynnik geometryczny, który wyraża, jaka część światła dla danej pary kierunków $(\vec{\omega_o}, \vec{\omega_i})$ nie zostaje osłonięta w wyniku relacji między wzajemnym położeniem mikrościanek. Efekt ten obliczany jest używając wyrażenia:
