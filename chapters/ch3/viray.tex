@@ -199,11 +199,11 @@ Każdy parametr jest osobną dyrektywą preprocesora~(\texttt{\#define}), a najw
 	a = 0.5;
 #endif
 \end{lstlisting}
-jednak posiada niezrównaną zaletę, jaką jest możliwość łatwego dostosowania parametrów modułu do aktualnych potrzeb. Pozwala to na eksplorację najbardziej optymalnych rozwiązań pod kątem tego, co zilustrowane zostało na rysunku~\ref{ch3:img:fpga_triangle}. Na dodatek pozwala zastosować mniej wymagające algorytmy, jeśli implementacja napotyka problemy związane z wytworzeniem odpowiedniej sieci połączeń. Jest to też rozwiązanie przyszłościowe - dysponując nowszą generacją układów FPGA będzie można szybko ulepszyć charakterystykę systemu np. zmniejszając interwał czy zwiększając głębokość śledzenia promieni.
+jednak posiada niezrównaną zaletę, jaką jest możliwość łatwego dostosowania parametrów modułu do aktualnych potrzeb. Pozwala to na eksplorację najbardziej optymalnych rozwiązań pod kątem tego, co zilustrowane zostało na rysunku~\ref{ch3:img:fpga_triangle}. Na dodatek pozwala zastosować mniej wymagające algorytmy, jeśli implementacja napotyka problemy związane z wytworzeniem odpowiedniej sieci połączeń. Jest to też rozwiązanie przyszłościowe - dysponując nowszą generacją układów FPGA będzie można szybko ulepszyć charakterystykę systemu np. zmniejszając interwał czy zwiększając głębokość śledzenia promieni\footnote{Wszelkie obrazy ukazujące pewne aspekty działania \textsc{ViRay}'a w tym podrozdziale pochodzą z symulacji działania rzeczywistego modułu}.
 
 \input{chapters/ch3/typedefs}
 
-\subsubsection{\textsc{ViRay} - najważniejsze komponenty modułu}
+\subsubsection{\textsc{ViRay} - funkcjonalność i najważniejsze komponenty modułu}
 \begin{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -524,10 +524,10 @@ Analizę działania modelu Torrance'a-Sparrowa najłatwiej dokonać w połączen
 
 \item \underline{Teksturowanie powierzchni}
 
-Teksturowanie powierzchni pozwala uatrakcyjnić wizualnie obiekty bez konieczności zwiększania ich złożoności geometrycznej poprzez nadanie punktom znajdującym się na obiekcie odpowiednich kolorów\footnote{Tak naprawdę tekstura może być odpowiedzialna nie tylko za nadanie konkretnego koloru obiektowi, ale może również modulować wektory normalne, współczynniki załamania oraz wiele innych parametrów mających wpływ na ostateczny odbiór obiektu przez obserwatora.}. \textsc{ViRay} pozwala nadać obiektowi pożądaną teksturę, której dane zapisane są w postaci mapy bitowej albo mapy szarości. W tym drugim przypadku, odcień szarości $\mathtt{mix}\in[0, 1]$ decyduje o stopniu mieszania między dwoma wybranymi przez użytkownika kolorami:
-\begin{equation}
+Teksturowanie powierzchni pozwala uatrakcyjnić wizualnie obiekty bez konieczności zwiększania ich złożoności geometrycznej poprzez nadanie punktom znajdującym się na obiekcie odpowiednich kolorów\footnote{Tak naprawdę tekstura może być odpowiedzialna nie tylko za nadanie konkretnego koloru obiektowi, ale może również modulować wektory normalne, współczynniki załamania oraz wiele innych parametrów mających wpływ na ostateczny odbiór obiektu przez obserwatora.}. \textsc{ViRay} pozwala nadać obiektowi pożądaną teksturę~(kilka różnych obiektów może współdzielić tę samą teksturę), której dane zapisane są w postaci mapy bitowej albo mapy szarości. W tym drugim przypadku, odcień szarości $\mathtt{mix}\in[0, 1]$ decyduje o stopniu mieszania między dwoma wybranymi przez użytkownika kolorami:
+\begin{equation*}
 \mathtt{color = color1\cdot mix + color2\cdot\left(1 - mix \right)}.
-\end{equation}
+\end{equation*}
 
 Problem teksturowania sprowadza się do nałożenia dwuwymiarowej mapy pikseli $\mathtt{w}\times\mathtt{h}$ na powierzchnię obiektu trójwymiarowego, który może wprowadzać zniekształcenie w jej odwzorowaniu. Z tego powodu współrzędne na mapie pikseli transformowane są liniowo do przestrzeni $[u, v] \in [0, 1]^2$~(rysunek~\ref{ch3:img:texture_mapping}) zaś współrzędne punktu przecięcia promienia z obiektem w przestrzeni obiektu $\vec{p}'\in[-1, 1]^3$ poddawane są innej~(w ogólnym przypadku nieliniowej) transformacji do przestrzeni $[u, v]$. 
 
@@ -541,13 +541,13 @@ v &= \frac{p_z' + 1}{2}.
 \end{align*}
 Dostępność dodatkowych trybów mapowania w \textsc{ViRay}'u jest sterowana poprzez \texttt{ADVANCED\_TEXTURE\_MAPPING\_ENABLE}. Definicja ta daje dostęp do odwzorowania \textit{cylindrycznego}:
 \begin{align*}
-u &= \frac{\arctan\frac{p_x'}{p_z'}}{2\pi},\\
+u &= \frac{\phi}{2\pi} = \frac{\arctan\frac{p_x'}{p_z'}}{2\pi},\\
 v &= \frac{v_y' + 1}{2}
 \end{align*} 
 oraz \textit{sferycznego}:
 \begin{align*}
-u &= \frac{\arctan\frac{p_x'}{p_z'}}{2\pi},\\
-v &= 1 - \frac{\arccos y}{\pi}.
+u &= \frac{\phi}{2\pi} = \frac{\arctan\frac{p_x'}{p_z'}}{2\pi},\\
+v &= 1 - \frac{\theta}{\pi} = 1 - \frac{\arccos y}{\pi}.
 \end{align*} 
 
 Wpływ trzech wymienionych powyżej trybów na finalne odwzorowanie tekstury na powierzchni różnych obiektów został przedstawiony na rysunku~\ref{ch3:img:texture_proj}.
@@ -602,30 +602,88 @@ Algorytmy dokonujące teksturowania pozwalają również dokonywać translacji t
 
 \addimage{chapters/ch3/img/texture_proj/texture_transform.png}{width=0.9\textwidth}{Translacja oraz skalowanie tekstury. a) Kwadrat z oryginalną teksturą. b) Tekstura została przesunięta o 0.1 jednostki w lewo oraz 0.2 jednostki w dół. c) Oryginalna tekstura została przeskalowana w taki sposób, że została powielona dwukrotnie w kierunku $u$ oraz trzykrotnie w kierunku $v$~(możliwe są również niecałkowite wartości skali). d) Oryginalny obiekt a) został poddany skalowaniu co wpłynęło również na deformację tekstury}{Translacja oraz skalowanie tekstury}{ch3:img:texture_transform}
 
-Tekstury w \textsc{ViRay}'u są całkowicie przechowywane w pamięci BRAM układu FPGA\footnote{Własność ta wynika z faktu, iż Vivado HLS nie pozwala dokonywać asynchronicznych, względem potoku przetwarzania, operacji odczytu danych z pamięci zewnętrznej.}\footnote{Możliwe jest również poinstruowanie Vivado HLS, aby pamięć tekstur znalazła się w układach UltraRAM za pomocą definicji \texttt{TEXTURE\_URAM\_STORAGE}. Rozwiązanie to jest jednakże niezalecane z uwagi na fakt, iż bloki UltraRAM są zlokalizowane w układzie FPGA tzn. nie są tak bardzo rozproszone po całym układzie jak bloki BRAM, w wyniku czego na etapie implementacji dochodzi do nadmiernego stłoczenia, czyli lokalnego przeciążenia sieci połączeń, co prowadzi do niepowodzenia implementacji.}. Fakt ten wymusza stosowanie tekstur o odpowiednio niskiej rozdzielczości~(standardowo \textsc{ViRay} udostępnia miejsce na $256^2$ 32-bitowych wartości, patrz \texttt{TEXT\_PAGE\_SIZE}). W takim wypadku nałożony na powierzchnię obraz może być poszarpany z wyraźnymi krawędziami pomiędzy pikselami tekstury. Zdefiniowanie w pliku konfiguracyjnym \texttt{BILINEAR\_TEXTURE\_FILTERING\_ENABLE} za cenę rozmycia szczegółów tekstury pozwala wyeliminować wyraźne granice między pikselami~(rysunek~\ref{ch3:img:bilinear_filtering}). 
+Tekstury w \textsc{ViRay}'u są całkowicie przechowywane w pamięci BRAM układu FPGA\footnote{Własność ta wynika z faktu, iż Vivado HLS nie pozwala dokonywać asynchronicznych, względem potoku przetwarzania w module, operacji odczytu danych z pamięci zewnętrznej.}\footnote{Możliwe jest również poinstruowanie Vivado HLS, aby pamięć tekstur znalazła się w układach UltraRAM za pomocą definicji \texttt{TEXTURE\_URAM\_STORAGE}. Rozwiązanie to jest jednakże niezalecane z uwagi na fakt, iż bloki UltraRAM są zlokalizowane w układzie FPGA tzn. nie są tak bardzo rozproszone po całym układzie jak bloki BRAM, w wyniku czego na etapie implementacji dochodzi do nadmiernego stłoczenia, czyli lokalnego przeciążenia sieci połączeń, co prowadzi do niepowodzenia implementacji.}. Fakt ten wymusza stosowanie tekstur o odpowiednio niskiej rozdzielczości~(standardowo \textsc{ViRay} udostępnia miejsce na $256^2$ 32-bitowych wartości, patrz \texttt{TEXT\_PAGE\_SIZE}). W takim wypadku nałożony na powierzchnię obraz może być poszarpany z wyraźnymi krawędziami pomiędzy pikselami tekstury. Zdefiniowanie w pliku konfiguracyjnym \texttt{BILINEAR\_TEXTURE\_FILTERING\_ENABLE} za cenę rozmycia szczegółów tekstury pozwala wyeliminować wyraźne granice między pikselami~(rysunek~\ref{ch3:img:bilinear_filtering}). 
 
-\addimage{chapters/ch3/img/bilinear_filtering.png}{width=0.8\textwidth}{Algorytm filtracji biliniowej tekstury. Zaznaczony na {\color{red}czerwono} punkt $\vec{p}'$ na powierzchni obiektu odpowiada środkowemu pikselowi tekstury, jednak nie wypada on w samym centrum obszaru~(tzw. \textit{centroid}). W kierunku $u$ oraz $v$ znajdowane są najbliższe piksele tekstury przylegające do piksela centralnego i najbliższe $\vec{p}'$. Kolor tekstury w $\vec{p}'$ obliczony zostaje na podstawie kolorów pikseli tekstury i ich wag, zależnych od odległości $\vec{p}'$ od centroidów wzdłuż osi $u$ oraz $v$, jako interpolacja liniowa w kierunku $u$ oraz $v$}{Algorytm filtracji biliniowej tekstury}{ch3:img:bilinear_filtering}
+\addimage{chapters/ch3/img/bilinear_filtering.png}{width=0.8\textwidth}{Algorytm filtracji biliniowej tekstury. Zaznaczony na {\color{red}czerwono} punkt $\vec{p}'$ na powierzchni obiektu odpowiada środkowemu pikselowi tekstury, jednak nie wypada on w samym centrum obszaru~(tzw. \textit{centroid} {\color{orange}$\mathbf{c_{(u, v)}}$}). W kierunku $u$ oraz $v$ znajdowane są najbliższe piksele tekstury przylegające do piksela centralnego i najbliższe $\vec{p}'$~(w tym przypadku {\color{orange}$\mathbf{c_{(u-1, v)}}$} oraz {\color{orange}$\mathbf{c_{(u, v-1)}}$}). Kolor tekstury w $\vec{p}'$ obliczony zostaje na podstawie kolorów tychże pikseli i ich wag, zależnych od odległości $\vec{p}'$ od centroidów wzdłuż osi $u$ oraz $v$, jako interpolacja liniowa w kierunku $u$ oraz $v$}{Algorytm filtracji biliniowej tekstury}{ch3:img:bilinear_filtering}
 
 \item \underline{Zapis finalnego koloru piksela - \texttt{SaveColorToBuffer()}}
 
+Zanim finalny kolor piksela zostanie zapisany w buforze ramki, zmiennoprzecinkowy wektor $\mathtt{\overrightarrow{color}}$ przechowujący informację o kolorze zostaje poddany konwersji do 3 8-bitowych wartości \texttt{R}, \texttt{G}, \texttt{B} za pomocą prostej transformacji:
+
+\begin{lstlisting}
+unsigned tempColor[3];
+for(unsigned i = 0; i < 3; ++i)
+{
+	// R: i = 0
+	// G: i = 1
+	// B: i = 2
+	if (color[i] > float(1.0))	color[i] = float(1.0);
+	tempColor[i] = unsigned(color[i] * 255.0f);
+}
+\end{lstlisting}
+Sprawdzenie warunku w ciele pętli jest konieczne po to, aby wyjściowe wartości składowych koloru nie przekroczyły maksymalnej wartości możliwej do zapisania za pomocą 8 bitów. Konsekwencją tego rozwiązania są tzw. \textit{przepalenia}, czyli obszary, gdzie intensywność którejkolwiek ze składowych w wektorze $\mathtt{\overrightarrow{color}}$ są większe niż 1~(patrz komentarz pod rysunkiem~\ref{ch3:img:blinn_phong}).
+
+Otrzymane w ten sposób wartości są następnie pakowane w jedną 32-bitową wartość reprezentującą finalny kolor piksela przy czym proces ten jest kontrolowany poprzez definicję \texttt{PIXEL\_COLOR\_CONVERSION\_ENABLE}, co zostało pokazane na poniższym schemacie.
+
+\addimage{chapters/ch3/img/color_conversion.png}{width=0.85\textwidth}{Upakowanie danych koloru \texttt{RGB} w 32-bitowej wartości w buforze ramki. Przypadek a) odpowiada sytuacji, gdy \texttt{PIXEL\_COLOR\_CONVERSION\_ENABLE} nie zostało zdefiniowane - wtedy każdy 32-bitowy element bufora ramki przechowuje informacje o wszystkich trzech składowych koloru. W sytuacji b), gdy \texttt{PIXEL\_COLOR\_CONVERSION\_ENABLE} zostało zdefiniowane, każdy 32-bitowy element bufora ramki niesie ze sobą informację o składowej zielonej \texttt{G} - informacje o składowych niebieskiej \texttt{B} i czerwonej \texttt{R} zapisywane są naprzemiennie w kolejnych elementach~(dany piksel posiada albo informację o kanale \texttt{B} albo \texttt{R}), przy czym jako pierwsza występuje składowa \texttt{B}~($n=0$)}{Upakowanie danych koloru \texttt{RGB} w 32-bitowej wartości w buforze ramki}{ch3:img:color_conversion}
+
+Trybu zapisu, który implikuje definicja \texttt{PIXEL\_COLOR\_CONVERSION\_ENABLE}, został stworzony po to, aby na płytce ewaluacyjnej KCU116 w pełnym systemie przetwarzania danych możliwe było bezpośrednie wykorzystanie danych bufora ramki dostarczanych przez \textsc{ViRay} bez konieczności stosowania dodatkowych modułów dokonujących odpowiedniej konwersji danych.
+
+\subsubsection{\textsc{ViRay} - wydajność oraz estymacja wymaganych zasobów}
+
+Dla parametrów modułu \textsc{ViRay} zgodnych z danymi zebranymi w tabeli~\ref{ch3:tab:typedefs}, okresu zegara równego 3,3~ns oraz układu KCU116 raport po syntezie HLS~(w wersji 2017.4) przedstawia się następująco:
+
+\begin{table}[H]
+\centering
+\caption[Wykorzystanie zasobów układu KCU116 oraz szybkość finalnej wersji modułu \textsc{ViRay}]{Wykorzystanie zasobów układu KCU116 oraz szybkość finalnej wersji modułu \textsc{ViRay}. Dolny wiersz odpowiada sytuacji, gdyby zamiast 32-bitowych liczb zmiennoprzecinkowych \texttt{float} do obliczeń w całym module wykorzystać typ połówkowej precyzji \texttt{half}. Ostatnia kolumna (\textbf{\#}) prezentuje ilość cykli zegara potrzebnych na wykonanie wszystkich zadań związanych z tworzeniem pojedynczej ramki obrazu w rozdzielczości 1920 x 1080 pikseli~(Full HD) oraz przeliczenie tej wartości na czas przetwarzania w milisekundach}
+\label{ch3:tab:viray_util}
+\begin{tabular}{|r|c|c|c|c|c|}
+\hline
+\multicolumn{1}{|l|}{} & \textbf{BRAM}                                           & \textbf{DSP}                                            & \textbf{FF}                                                & \textbf{LUT}                                               & \textbf{\#}                                                  \\ \hline
+\texttt{float}         & \begin{tabular}[c]{@{}c@{}}164\\ (17,1 \%)\end{tabular} & \begin{tabular}[c]{@{}c@{}}911\\ (50,0 \%)\end{tabular} & \begin{tabular}[c]{@{}c@{}}348999\\ (80,4 \%)\end{tabular} & \begin{tabular}[c]{@{}c@{}}173126\\ (79,8 \%)\end{tabular} & \begin{tabular}[c]{@{}c@{}}16765083\\ (55,3 ms)\end{tabular} \\ \hline\hline
+\texttt{half}          & \begin{tabular}[c]{@{}c@{}}170\\ (17,7 \%)\end{tabular} & \begin{tabular}[c]{@{}c@{}}835\\ (45,8 \%)\end{tabular} & \begin{tabular}[c]{@{}c@{}}176873\\ (40,8 \%)\end{tabular} & \begin{tabular}[c]{@{}c@{}}111854\\ (51,6 \%)\end{tabular} & \begin{tabular}[c]{@{}c@{}}16734245\\ (55,2 ms)\end{tabular} \\ \hline
+\end{tabular}
+\end{table}
+
+Przytoczone powyżej wartości odnoszą się do ramki obrazu 1920~x~1080 pikseli~(ok. 2,07 mln pikseli), generowanej przez moduł, który jest implementowalny w fizycznym układzie FPGA. Wynika z nich, iż wymagania dotyczące minimalnej płynności~(tj. 100~ms na ramkę obrazu) oraz rozdzielczości~(1~mln pikseli) zostały zrealizowane. Ponadto czas generowania obrazu jest stały i zadany przez zastosowaną konfigurację. Jest to niewątpliwie zasługa poczynionych optymalizacji algorytmów oraz uproszczeń, dzięki którym możliwe jest generowanie kolejnych pikseli obrazu co 8 cykli zegara~(\texttt{DESIRED\_INNER\_LOOP\_II}).
+
+W tabeli~\ref{ch3:tab:viray_util} została również umieszczona informacja dotycząca sytuacji, gdyby wszystkie obliczenia \textsc{ViRay} przeprowadzał z użyciem typu \texttt{half} zamiast \texttt{float}. Mimo iż raportowana przez Vivado HLS utylizacja zasobów jest tylko estymacją, różnice są na tyle duże, iż można założyć, że zaoszczędzone elementy układu FPGA można byłoby przeznaczyć do implementacji dodatkowych funkcjonalności bądź zmniejszenia interwału między pikselami. Z drugiej strony takie zmniejszenie precyzji nie pozostawałoby bez wpływu na jakość generowanej informacji wizualnej~(rysunek~\ref{ch3:img:float_vs_half}).
+
+W tym miejscu należy wytknąć twórcom Vivado~HLS niekonsekwencję związaną z dostępnymi w Vivado~HLS typami danych. Skoro typy całkowitoliczbowe oraz stałopozycyjne mogą zostać zdefiniowane przez użytkownika w dowolny sposób, z dowolną ilością bitów,  niezrozumiałym jest dostęp do jedynie podstawowych typów zmiennoprzecinkowych tj. \texttt{half}, \texttt{float} oraz \texttt{double}. Obecność typów zmiennoprzecinkowych dowolnej precyzji o rozmiarze pomiędzy 16 a 32 bitami pozwoliłaby przeprowadzić dodatkowe eksperymenty i zoptymalizować \textsc{ViRay} w jeszcze większym stopniu niż możliwe jest to obecnie.
+
+\begin{figure}[H]
+\centering
+\subfigure{\includegraphics[width=0.75\textwidth]{chapters/ch3/img/float_half/output_refl_full.png}}
+\subfigure{\includegraphics[width=0.75\textwidth]{chapters/ch3/img/float_half/output_refl_half.png}}
+\caption[Porównanie obrazów wygenerowanych przez wczesną wersję modułu \textsc{ViRay}]{Porównanie obrazów wygenerowanych przez wczesną wersję modułu \textsc{ViRay}. Ta sama scena została wygenerowana z użyciem pełnej~(góra) oraz połówkowej~(dół) precyzji obliczeń zmiennoprzecinkowych. W tym drugim przykładzie uwidaczniają się artefakty wynikające ze zbyt niskiej precyzji obliczeń}
+\label{ch3:img:float_vs_half}
+\end{figure}
+\end{enumerate}
+
+\subsubsection{\textsc{ViRay} - wpływ zastosowanej konfiguracji na złożoność sceny}
+Przedstawione do tej pory obrazy tworzone za pomocą \textsc{ViRay}'a demonstrowały tylko pewne elementy funkcjonalności finalnego modułu ważne do zilustrowanie danego zagadnienia. Poniższa seria wygenerowanych obrazów~(rysunek~\ref{ch3:img:complexity}) nie tylko pokazuje działanie \textsc{ViRay}'a w bardziej złożonej scenie, ale również pozwala poznać wpływ większości kluczowych parametrów na jej ostateczny wygląd. Wszystkie te obrazy, tak samo jak reszta w tym podrozdziale, są wynikiem działania środowiska symulacyjnego, które powstawały dzięki włączaniu kolejnych funkcjonalności, a ich numery zaczynają się od 1 i rosną od lewej do prawej, z góry na dół.
+\begin{enumerate}
+\item Scena oświetlona tylko poprzez globalne światło otoczenia \texttt{AMBIENT\_COLOR\_ENABLE}.
+\item Włączenie światła rozproszonego \texttt{DIFFUSE\_COLOR\_ENABLE}.
+\item Dodanie czynnika \texttt{SPECULAR\_HIGHLIGHT\_ENABLE} związanego z generowaniem rozbłysków zwierciadlanych.
+\item Umożliwienie rzucania cieni przez obiekty \texttt{SHADOW\_ENABLE}.
+\item Nałożenie tekstur na obiekty \texttt{TEXTURE\_ENABLE}.
+\item Filtracja biliniowa tekstur \texttt{BILINEAR\_TEXTURE\_FILTERING\_ENABLE} - sprawia, że tekstura na centralnym obiekcie staje się znacznie gładsza.
+\item Rozpoczęcie generowania odbić na obiektach \texttt{RAYTRACING\_DEPTH = 2} - konfiguracja domyślna.
+\item \texttt{RAYTRACING\_DEPTH = 3}.
+\item \texttt{RAYTRACING\_DEPTH = 4}.
+\item \texttt{RAYTRACING\_DEPTH = 10}.
+\end{enumerate}
+
+Największy skok w jakości uzyskiwany jest w momencie, gdy zaczynają być generowane cienie, które pozwalają znacznie łatwiej zorientować się w przestrzennej relacji między obiektami a światłem oraz po włączeniu możliwości generowania promieni rozproszonych~(\texttt{RAYTRACING\_DEPTH = 2}). Dalsze zwiększanie parametru związanego z głębokością śledzenia promieni dodaje kolejne detale na powierzchniach obiektów, jednak każdy kolejny promień wnosi coraz mniejszy wkład do końcowego efektu, gdyż $0 \leq r_{l-1} \leq 1$~(patrz równanie~\eqref{ch3:eq:total_radiance}), w wyniku czego różnice między obrazami dla \texttt{RAYTRACING\_DEPTH = 4} oraz \texttt{RAYTRACING\_DEPTH = 10} są niewielkie.
+
+Wartym uwagi parametrem jest również czas, w jakim wygenerowany został obraz nr 7. Ten odpowiada konfiguracji domyślnej \textsc{ViRay}'a dostosowanej do działania na układzie KCU116 w czasie rzeczywistym. Na komputerze wyposażonym w procesor Intel Core i5 4690K działającym z częstotliwością 3,9~GHz, czas oczekiwania na wykonanie symulacji, będącej wykonywalnym jednowątkowym programem napisanym w języku C++, wynosi ok. 67,6~s, czyli jest 3 rzędy wielkości dłuższy niż gdyby ta sama scena była generowana bezpośrednio w układzie FPGA za pomocą stworzonego modułu~($\frac{67,6~\mathrm{s}}{55,3~\mathrm{ms}}\approx 1222$). 
+
 \input{chapters/ch3/complexity_params}
 
+\subsection{Implementacja stworzonego modułu w układzie FPGA}
 
 
-
-
-wpływ parametrów, obrazki
-\begin{itemize}
-\item stożek świetlny prostopadle do płaszczyzny, spot cutoff (z wykresem), wpływ pochylenia
-\item model lamberta
-\item model Blinna-Phonga, kolor rozbłysku i jego skupienie
-\item model Oren-Nayar, zmienność z sigma, czemu nie działa w realnym układzie
-\item model Torrance-Sparrow
-\item współczynnik Fresnela (kula i różna eta)
-\end{itemize}
-{\color{red}OBRAZKI - DUŻO OBRAZKÓW!!!!}
-
-\end{enumerate}
 
 \subsection{Przepływ danych przez akcelerator}
 Zgrubne i bardziej szczegółowe opisanie funkcjonalności poszczególnych bloczków
