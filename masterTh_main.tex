@@ -39,6 +39,7 @@
 \usepackage{tabulary}
 \usepackage{longtable}
 \usepackage{footnote}
+\usepackage[autostyle]{csquotes}
 \pagestyle{fancy}
 \fancyhead{} % clear all header fields
 \fancyhead[RO,LE]{\thepage}
@@ -276,6 +277,23 @@ Recenzja recenzenta
 \clearpage
 \phantomsection
 
+\clearpage{\pagestyle{empty}\cleardoublepage}
+\newpage
+\thispagestyle{empty}
+{\color{white}
+\rule{1cm}{6cm}
+}
+\begin{center}
+\includegraphics[scale=0.5]{img/abb.png}
+\end{center}
+
+\begin{center}
+\begin{large}
+Niniejsza praca została zrealizowana dzięki wsparciu technologicznemu Korporacyjnego Centrum Badawczego ABB w Krakowie
+\end{large}
+\end{center}
+
+\clearpage{\pagestyle{empty}\cleardoublepage}
 \newpage
 \newgeometry{top=5cm, bottom=5cm,inner=3cm, outer=3cm, headsep=1.5cm, headheight=16pt}
 \thispagestyle{empty}
@@ -313,6 +331,14 @@ Recenzja recenzenta
 
 \input{chapters/intro/intro}
 \clearpage{\pagestyle{empty}\cleardoublepage}
+
+\fancyhead{} % clear all header fields
+\fancyhead[RO,LE]{\thepage}
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter.\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection.\ #1}} 
+\fancyhead[LO]{\leftmark}
+\fancyhead[RE]{\rightmark}
+
 
 %% =====  RAY TRACING I FIZYKA  ====
 

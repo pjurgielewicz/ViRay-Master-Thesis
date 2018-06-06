@@ -1,4 +1,27 @@
 \addcontentsline{toc}{chapter}{Wstęp}
 \chapter*{Wprowadzenie}
-Lorem ipsum\newpage fasdfs
+{
+
+\pagestyle{empty}
+\pagestyle{fancy}
+\fancyhead{} % clear all header fields
+\fancyhead[RO,LE]{\thepage}
+\fancyhead[RE,LO]{Wprowadzenie}
+
+Celem najnowszych technologii jest przede wszystkim zwiększanie jakości życia, wygody oraz produktywności korzystających z nich ludzi. Gdy określony krąg specjalistów znających się na danym zagadnieniu stara się stworzyć z użyciem własnych umiejętności rozwiązanie przystępne dla szerszego grona odbiorców mamy do czynienia z postępem.
+
+Kiedy powstawały pierwsze próby stworzenia możliwie zrozumiałego opisu zachowania układów elektronicznych za pomocą języków opisu sprzętu, nikt nie był zainteresowany tym by upodabniać je do rozpowszechnionych sekwencyjnych języków programowania - liczyło się przede wszystkim wierne odwzorowanie sposobu, w jaki dane transferowane są pomiędzy różnymi elementami elektronicznymi. Opanowanie tych języków wiąże się z zupełnie innym postrzeganiem przetwarzania informacji. 
+
+Obecnie okazuje się za sprawą syntezy wysokiego poziomu, takiej jak Vivado HLS, że do konfiguracji układu elektronicznego można wykorzystać wysokopoziomowe języki programowania takie jak C/C++. Dzięki temu programiści mogą teoretycznie wykorzystać możliwości sprzętowej akceleracji problemów bez konieczności posiadania specjalistycznej wiedzy z zakresu języków opisu sprzętu.
+
+Niniejsza praca koncentruje się właśnie na sprawdzeniu użyteczności narzędzia jakim jest Vivado HLS z użyciem układów FPGA firmy Xilinx na przykładzie generowania realistycznych obrazów metodą śledzenia promieni. Technika ta jest kosztowna obliczeniowo za pomocą tradycyjnych technik opartych o wykonywanie algorytmu przez procesor komputera, jednak w przeciwieństwie do rastryzacji daje realistyczne obrazy w sposób bezpośredni, tylko na podstawie analizy rozchodzenia się światła w przestrzeni.
+
+Niniejsza praca została podzielona na 3 rozdziały:
+\begin{enumerate}
+\item Opisuje, na czym polega technika śledzenia promieni, jakie podstawowe prawa i koncepcje fizyczne są przez nią wykorzystywane. Przedstawione tu zostały również pewne modele służące opisaniu zachowania się różnych typów powierzchni w momencie interakcji ze światłem.
+\item Pokazuje, dlaczego układy FPGA są ciekawym narzędziem służącym do akceleracji przetwarzania danych. Opisane zostały cechy Vivado HLS odróżniające go od zwykłych języków sekwencyjnych~(w tym dyrektywy optymalizacyjne) oraz fundamentalne informacje dotyczące  implementacji stworzonego przy pomocy Vivado HLS modułu w strukturze układu FPGA.
+\item Rozdział ten podaje, w jaki sposób próbowano stworzyć moduł dokonujący akceleracji śledzenia promieni przy pomocy Vivado HLS. Pokazuje on wady i zalety tego narzędzia w różnych sytuacjach, a także opisuje możliwości finalnego modułu, który jest implementowalny w strukturze układu FPGA. 
+\end{enumerate}
+}
+%Lorem ipsum\newpage fasdfs
 %\cite{Hecht}\cite{PBRT}\cite{RTFTGU}\cite{OPENGL46}
