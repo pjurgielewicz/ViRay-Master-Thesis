@@ -40,6 +40,7 @@
 \usepackage{longtable}
 \usepackage{footnote}
 \usepackage[autostyle]{csquotes}
+\usepackage{quotchap}
 \pagestyle{fancy}
 \fancyhead{} % clear all header fields
 \fancyhead[RO,LE]{\thepage}
@@ -179,7 +180,7 @@ keepspaces=true,                 % keeps spaces in text, useful for keeping inde
 { \small kierunek studiów:} {\bf\normalsize{fizyka techniczna}}\\
 \vspace{10ex}
 %% ------------------------ TYTUL PRACY --------------------------------------
-{\bf\large{
+{\bf\LARGE{
 Akcelerator realistycznej grafiki trójwymiarowej w języku Vivado~HLS dla układu FPGA
 }}\\
 \vspace{14ex}
@@ -199,7 +200,7 @@ Akcelerator realistycznej grafiki trójwymiarowej w języku Vivado~HLS dla ukła
 \Large{\bf{Oświadczenie}}
 \end{center}
 
-\textit{Oświadczam, świadomy odpowiedzialności karnej za poświadczenie nieprawdy, że niniejszą pracę dyplomową wykonałem) osobiście i samodzielnie i nie korzystałem) ze źródeł innych niż wymienione w pracy.}
+\textit{Oświadczam, świadomy odpowiedzialności karnej za poświadczenie nieprawdy, że niniejszą pracę dyplomową wykonałem osobiście i samodzielnie i nie korzystałem ze źródeł innych niż wymienione w pracy.}
 
 \vspace{14ex}
 
@@ -228,8 +229,8 @@ Temat pracy magisterskiej:
 \begin{tabular}{rl}
 
 Opiekun pracy:                  & dr inż. Daniel Lewandowski\\
-Recenzenci pracy:               & dr inż. X Y Z\\
-Miejsce praktyki dyplomowej:    & Centrum Badawczo-Rozwojowe ABB, Kraków\\
+Recenzenci pracy:               & dr hab. inż. Bartosz Mindur\\
+Miejsce praktyki dyplomowej:    & Korporacyjne Centrum Badawcze ABB, Kraków\\
 \end{tabular}
 
 \begin{center}
@@ -269,15 +270,17 @@ Termin oddania w dziekanacie: ?? czerwca 2018\\
 \newpage
 \thispagestyle{empty}
 Recenzja opiekuna
+\clearpage{\pagestyle{empty}\cleardoublepage}
 \newpage
 \thispagestyle{empty}
 Recenzja recenzenta
+\clearpage{\pagestyle{empty}\cleardoublepage}
 %% =====  STRONA TYTUŁOWA PRACY MAGISTERSKIEJ  ====
 
-\clearpage
-\phantomsection
-
-\clearpage{\pagestyle{empty}\cleardoublepage}
+%\clearpage
+%\phantomsection
+%
+%\clearpage{\pagestyle{empty}\cleardoublepage}
 \newpage
 \thispagestyle{empty}
 {\color{white}
@@ -292,6 +295,7 @@ Recenzja recenzenta
 Niniejsza praca została zrealizowana dzięki wsparciu technologicznemu Korporacyjnego Centrum Badawczego ABB w Krakowie
 \end{large}
 \end{center}
+
 
 \clearpage{\pagestyle{empty}\cleardoublepage}
 \newpage
