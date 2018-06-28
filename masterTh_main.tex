@@ -26,7 +26,8 @@
 \usepackage{xcolor}
 
 \usepackage{adjustbox}
-\usepackage[a4paper, twoside, inner=4cm, outer=2cm, top=3cm, bottom=3cm, headsep=1.5cm, headheight=16pt]{geometry}
+%\usepackage[a4paper, twoside, inner=4cm, outer=2cm, top=3cm, bottom=3cm, headsep=1.5cm, headheight=16pt]{geometry}
+\usepackage[a4paper, twoside, inner=2.5cm, outer=2cm, top=2cm, bottom=2cm, headsep=0.5cm, headheight=16pt]{geometry}
 \usepackage{titlesec}
 \usepackage{cool}
 \usepackage{graphicx}
@@ -41,6 +42,9 @@
 \usepackage{footnote}
 \usepackage[autostyle]{csquotes}
 \usepackage{quotchap}
+\usepackage[bottom]{footmisc}		%%% Set footnotes to the very bottom even if \raggedbottom	is set
+
+
 \pagestyle{fancy}
 \fancyhead{} % clear all header fields
 \fancyhead[RO,LE]{\thepage}
@@ -68,7 +72,7 @@
  
 \setlength{\parindent}{1cm}
 \setlength{\parskip}{0cm}
-\linespread{1.3} %interlinia
+\linespread{1.15} %interlinia
 \setlength{\parsep}{0cm}
 \setlist[itemize]{itemsep=0mm}
 \setlist[enumerate]{itemsep=0mm}
@@ -95,7 +99,7 @@
 \usepackage[labelfont=bf,textfont=normalfont]{caption}
 %\setlength\labelsep{.5em}  
 
-\usepackage[breaklinks]{hyperref}
+\usepackage[breaklinks,hidelinks]{hyperref}
 
 \hypersetup{
     colorlinks=false, 
@@ -112,6 +116,8 @@
 \end{figure}}
 
 \numberwithin{equation}{section}
+\raggedbottom				%%% prevent vertical object spread
+\renewcommand{\thefootnote}{\roman{footnote}}
 
 \begin{document}
 %\bibliographystyle{IEEEtran}
@@ -187,7 +193,7 @@ Akcelerator realistycznej grafiki trójwymiarowej w języku Vivado~HLS dla ukła
 %% ------------------------ OPIEKUN PRACY ------------------------------------
 { \Large {Opiekun:}} {\bf\Large{dr inż. Daniel Lewandowski}}\\
 \vspace{18ex}
-\bf\large{Kraków, czerwiec 2018}
+\bf\large{Kraków, lipiec 2018}
 \end{center}
 %% =====  TYL STRONY TYTULOWEJ PRACY INŻYNIERSKIEJ  ====
 \newpage
@@ -216,7 +222,7 @@ Akcelerator realistycznej grafiki trójwymiarowej w języku Vivado~HLS dla ukła
 
 \newpage
 \pagestyle{empty}
-\rightline{Kraków, ?? czerwca 2018}
+\rightline{Kraków, ?? lipca 2018}
 \begin{center}
 {\bf Tematyka pracy magisterskiej i praktyki dyplomowej
 Pawła Jurgielewicza,
@@ -255,7 +261,7 @@ Miejsce praktyki dyplomowej:    & Korporacyjne Centrum Badawcze ABB, Kraków\\
 \end{enumerate}
 
 \noindent
-Termin oddania w dziekanacie: ?? czerwca 2018\\
+Termin oddania w dziekanacie: ?? lipca 2018\\
 
 \begin{center}
 \begin{tabular}{lcr}
@@ -310,6 +316,10 @@ Niniejsza praca została zrealizowana dzięki wsparciu technologicznemu Korporac
 \pagestyle{fancy}  
 \restoregeometry
 \clearpage{\pagestyle{empty}\cleardoublepage}
+
+\renewcommand{\figurename}{Rys.} 
+\renewcommand{\tablename}{Tab.}
+\renewcommand{\listtablename}{Spis tabel}
 
 \addcontentsline{toc}{chapter}{Spis treści}
 \tableofcontents
