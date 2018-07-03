@@ -1,5 +1,5 @@
-\addcontentsline{toc}{chapter}{Podsumowanie}
 \chapter*{Podsumowanie}
+\addcontentsline{toc}{chapter}{Podsumowanie}
 
 \pagestyle{empty}
 \pagestyle{fancy}
@@ -13,7 +13,7 @@ Celem niniejszej pracy była ewaluacja przydatności w realnych zastosowaniach p
 \textit{Lacking such knowledge, it is a big challenge for software engineers to design for FPGA even with the state-of-art HLS tools.}\footnote{\textit{Brak takiej wiedzy, stanowi duże wyzwanie dla programistów chcących tworzyć projekty dla układów FPGA, nawet pomimo posługiwania się najnowocześniejszymi narzędziami przeprowadzającymi syntezę wysokiego poziomu.} Tłumaczenie własne.}\cite{FPGA_SD}
 \end{displayquote}
 
-Jako że opis algorytmiczny problemu za pomocą języka C/C++ jest istotnie różny od konfiguracji sprzętowej z użyciem Verilog czy VHDL, Vivado HLS dokonuje automatycznie szereg transformacji, na działanie których programista ma tylko ograniczony wpływ za pomocą dyrektyw optymalizacyjnych. Z użyciem wielu kluczowych dla wydajności dyrektyw jak \texttt{PIPELINE} czy \texttt{DATAFLOW} wiąże się szereg koniecznych do spełnienia warunków, które przeważnie nie będą spełnione od razu, a dopiero po znacznej modyfikacji algorytmu. 
+Jako że opis algorytmiczny problemu za pomocą języka C/C++ jest istotnie różny od~konfiguracji sprzętowej z użyciem Verilog czy VHDL, Vivado HLS dokonuje automatycznie szereg transformacji, na działanie których programista ma tylko ograniczony wpływ za~pomocą dyrektyw optymalizacyjnych. Z użyciem wielu kluczowych dla wydajności dyrektyw jak \texttt{PIPELINE} czy \texttt{DATAFLOW} wiąże się szereg koniecznych do spełnienia warunków, które przeważnie nie będą spełnione od razu, a dopiero po znacznej modyfikacji algorytmu. 
 
 Z powodu narzucanych ograniczeń oraz dość niewielkiego wpływu na ostateczny kształt opisu w postaci RTL nie można powiedzieć, iż Vivado HLS zastąpi pracę doświadczonych projektantów układów elektronicznych. Mogą oni być nim jednak zainteresowani podczas tworzenia i testowania rozwiązań prototypowych, gdyż tworzenie modułów w języku zbliżonym do C jest znacznie szybsze i łatwe w testowaniu. 
 
@@ -21,43 +21,24 @@ Nie da się natomiast ukryć, iż grupą docelową użytkowników Vivado HLS są
 
 Problemem, którego rozwiązania podjęto się z użyciem Vivado HLS, było generowania realistycznej grafiki metodą śledzenia promieni, która opiera się o prawa rządzące propagacją światła w przestrzeni. Metoda ta polega na badaniu ścieżek, po których poruszają się fotony, zanim trafią do obserwatora tworząc finalny obraz. 
 
-Pierwsze próby rozwiązania tego problemu oparte były na fakcie, że obliczenia dla wszystkich ścieżek mogą być przetwarzane masowo równolegle. Z użyciem Vivado HLS stworzono procesor, którego zadaniem było jak najszybsze przetwarzanie instrukcji opisujących algorytm śledzenia promieni. Poza tym musiał on wykorzystywać jak najmniej zasobów układu FPGA po to, aby takich procesorów pracujących jednocześnie można było umieścić w nim jak najwięcej. Okazało się, iż swoboda projektowania funkcjonalności, którą zapewniają języki opisu sprzętu jest niemożliwa do odtworzenia z użyciem Vivado HLS. Najlepszy ze stworzonych procesorów potrafił przetwarzać instrukcje z interwałem równym 3, zajmował dużo zasobów, nie implementował skoków a jakość wyników nie była wysoka. Wszystko to sprawiło, że dalsza eksploracja rozwiązania opartego o sieć procesorów była bezcelowa.
+Pierwsze próby rozwiązania tego problemu oparte były na fakcie, że obliczenia dla wszystkich ścieżek mogą być przetwarzane masowo równolegle. Z użyciem Vivado HLS stworzono procesor, którego zadaniem było jak najszybsze przetwarzanie instrukcji opisujących algorytm śledzenia promieni. Poza tym musiał on wykorzystywać jak najmniej zasobów układu FPGA po to, aby takich procesorów pracujących jednocześnie można było umieścić w~nim jak najwięcej. Okazało się, iż swoboda projektowania funkcjonalności, którą zapewniają języki opisu sprzętu, a która wymagana jest w przypadku tworzenia wydajnego procesora, jest niemożliwa do odtworzenia z użyciem Vivado HLS. 
+%Najlepszy ze stworzonych procesorów potrafił przetwarzać instrukcje z interwałem równym 3, zajmował dużo zasobów, nie implementował skoków a jakość wyników nie była wysoka. Wszystko to sprawiło, że dalsza eksploracja rozwiązania opartego o sieć procesorów była bezcelowa.
 
-Ostatecznie śledzenie promieni zrealizowano w postaci akceleratora o ustalonej funkcjonalności \textsc{ViRay}. Z jednej strony rozwiązanie takie pozwoliło Vivado HLS pokazać, iż jest w stanie dokonać akceleracji, gdyż cały algorytm przetwarzania jest zapisany od początku do końca~(w przeciwieństwie do procesora, w którym nie wiadomo, jakie instrukcje zostaną kolejno wykonane), z drugiej jednak użytkownik stworzonego modułu może wpływać na wygląd sceny jedynie za pomocą odpowiednich parametrów~(implikuje to np. iż nie można korzystać z BSDF, które nie zostały przewidziane na etapie syntezy). 
+Ostatecznie śledzenie promieni zrealizowano w postaci akceleratora o ustalonej funkcjonalności \textsc{ViRay}. Z jednej strony rozwiązanie takie pozwoliło Vivado HLS pokazać, iż~akceleracja jest osiągalna, gdyż cały algorytm przetwarzania jest zapisany wprost od początku do~końca~(w~przeciwieństwie do procesora, w którym nie wiadomo, jakie instrukcje zostaną kolejno wykonane), z drugiej jednak użytkownik stworzonego modułu może wpływać na wygląd sceny jedynie za pomocą odpowiednich parametrów~(implikuje to np. iż nie można korzystać z~BSDF, które nie zostały przewidziane na etapie syntezy). 
 
-Rozbudowując funkcjonalność modułu trzeba było pogodzić się ze wzrostem zapotrzebowania na elementy logiczne oraz ewentualnymi problemami z implementacją modułu w układzie FPGA związanymi z synchronizacją tak dużego modułu. 
+Rozbudowując funkcjonalność modułu trzeba było pogodzić się ze wzrostem zapotrzebowania na elementy logiczne oraz ewentualnymi problemami z implementacją modułu w~układzie FPGA związanymi z synchronizacją tak dużego modułu. 
 
-Ważna jest przede wszystkim wybrana reprezentacja danych, na których wykonywane są operacje, gdyż ta wpływa na ilość zasobów potrzebnych do implementacji odpowiednich działań. \textsc{ViRay} domyślnie wykorzystuje typ \texttt{float} chociaż istnieje przypuszczenie~(znajdujące potwierdzenie w cytowanej literaturze~\cite{RPU}), iż gdyby tylko Vivado HLS pozwalało stosować typy zmiennopozycyjne o dowolnej ilości bitów, \textsc{ViRay} mógłby być bardziej funkcjonalny przy jednoczesnym zachowaniu wystarczającej precyzji obliczeń.
-
-Ponadto, gdyby nie dostęp do najnowocześniejszego układu FPGA śledzenie promieni rozproszonych nie byłoby możliwe, a przez to obrazy nie różniłyby się znacząco od tych, które można stworzyć na drodze rasteryzacji. Mimo tego i tak trzeba było wykonać wiele ustępstw w stosunku do funkcjonalności~(m.~in. ograniczyć swobodę umieszczania obiektów w przestrzeni) oraz nie uniknięto problemów, które wynikały z naprawienia drobnych błędów w algorytmie np.:
-\begin{itemize}
-\item poprawienie obliczania reflektancji materiałów przewodzących wymusiło zmniejszenie zegara z 335~MHz do 320~MHz,
-\item implementacja modelu BRDF Orena-Nayara do samego końca nie była pewna w finalnej wersji \textsc{ViRay}'a, gdyż dodanie odpowiedniego kodu związanego z obliczeniem właściwego współczynnika całkowicie uniemożliwiało implementację w układzie FPGA nawet dla niskich częstotliwości pracy.
-\end{itemize}
-
-Ostatecznie, implementowalna w układzie FPGA znajdującym się na płytce ewaluacyjnej KCU116 wersja \textsc{ViRay}'a generująca obrazy ze stałą szybkością 19 klatek na sekundę w rozdzielczości Full HD pozwala:
+Implementowalna w układzie FPGA znajdującym się na płytce ewaluacyjnej KCU116 wersja \textsc{ViRay}'a generująca obrazy ze stałą szybkością 19 klatek na sekundę w rozdzielczości Full HD pozwala:
 \begin{itemize}
 \item umieścić w scenie maksymalnie 8 obiektów, które mogą być sferą, cylindrem, stożkiem, płaszczyzną, dyskiem bądź kwadratem,
-\item rozpatrywać pierwszą rodzinę odbitych promieni rozproszonych wraz z promieniami cienia,
-\item włączyć jedno globalne światło otoczenia oraz jedno źródło punktowe o modyfikowalnych parametrach,
+\item rozpatrywać pierwszą rodzinę odbitych promieni rozproszonych,
+\item włączyć jedno globalne światło otoczenia oraz jedno źródło punktowe o modyfikowalnych parametrach~(mogące być źródłem cieni),
 \item wybrać model opisujący zachowanie się powierzchni obiektu spośród modeli BRDF: Blinna-Phonga, Orena-Nayara i Torrance'a-Sparrowa,
 \item nakładać poddawane filtracji biliniowej tekstury na dowolny rodzaj obiektów.
 \end{itemize}
 Parametry te w dość dużym stopniu przewyższają pierwotne oczekiwania, a obraz generowany jest o 3 rzędy wielkości szybciej niż przez procesor komputera. Warto jednak podkreślić, iż nie przeprowadzono optymalizacji parametrów strategii syntezy oraz implementacji, który mogłyby skutkować zwiększeniem maksymalnej dopuszczalnej częstotliwości pracy \textsc{ViRay}'a. W tym przypadku mogłoby pomóc skorzystanie z narzędzia InTime, jednak w momencie tworzenia projektu nie było one dostępne dla Autora.
 
-\textsc{ViRay} został włączony jako część większego systemu przetwarzania danych, w którym ważną rolę odgrywa wykorzystanie mikroprocesora \texttt{Microblaze} oraz sprzętowego kodeka sygnału HDMI \texttt{ADV7511}. Dzięki temu możliwym jest animowanie sceny poprzez zmianę parametrów obiektów i oglądanie efektów na monitorze/telewizorze.
-
-\begin{center}
-$*\qquad *\qquad *$
-\end{center}
-
-Oczywiście stworzony moduł stanowi tylko bardzo uproszczoną implementację śledzenia promieni, którą można poddawać dalszym modyfikacjom. 
-
-Zgodnie z założeniami, obiekty w scenie opisane są poprzez odpowiednie równania - różne dla każdego obiektu. Sprawia to, że funkcje badające przecięcia promieni z obiektami wymagają dużych ilości elementów logicznych do ich implementacji. Pod tym względem, świat złożony z trójkątów jest znacznie bardziej atrakcyjny, gdyż wystarczyłoby jedynie sprawdzać przecięcia z jednym typem obiektów. W takim przypadku należałoby stworzyć dodatkowo funkcję/moduł przyspieszający testy przecięcia, gdyż poddane triangulacji obiekty mogą składać się z tysięcy trójkątów. Taka funkcjonalność musiałaby nie tylko błyskawicznie dokonywać testów geometrii, ale również zarządzać tysiącami obiektów, których dane nie mogą znaleźć się w całości w pamięci blokowej BRAM układu FPGA. Jak się okazuje, wynika z tego pojawienie się problemów, związanych z użyciem Vivado HLS, podobnych do tych, które zostały odkryte podczas opracowywania rozwiązania procesorowego.
-
-Ciekawym dodatkiem mógłby być też pośredni zapis kolorów pikseli do zmiennopozycyjnego bufora o znacznie większej dynamice tonalnej~(ang.~\textit{high dynamic range}, HDR) po to, aby na etapie konwersji do obrazu o niskiej, 8-bitowej, dynamice~(ang.~\textit{low dynamic range}, LDR) móc lepiej odwzorować detale powierzchni i przeciwdziałać przepaleniom kolorów.
-
-Przyglądając się cytowanej literaturze traktującej o budowie kompleksowego rozwiązania przeprowadzającego symulację transportu światła w przestrzeni~\cite{PBRT}\cite{RTFTGU} już w pierwszych rozdziałach prezentowane są podstawy związane z metodą Monte-Carlo, która wykorzystywana jest do implementacji rozkładu promieni w przestrzeni. Koncepcja ta, w niniejszej pracy, ze względu na ograniczone zasoby sprzętowe układów FPGA, została całkowicie pominięta. Wykorzystując metodę Monte-Carlo można m.~in. wygładzać granice między obiektami~(tzw.~\textit{antyaliasing}), symulować skończoną głębię ostrości kamery, dodawać źródła światła o skończonej powierzchni czy umożliwić generowanie rozproszonych odbić kierunkowych. Wadą tej metody jest jednak konieczność rozpatrywania znacznie większej liczby promieni, aby uzyskać kolor danego piksela. Aktualnie powstają nowe technologie oparte o uczenie maszynowe, których celem jest zmniejszenie liczby wymaganych promieni dla osiągnięcia tych samych efektów, co tradycyjnie~\cite{NVIDIA_JENSEN}\cite{NVIDIA_DEMO}. Mimo tych wysiłków, do tej pory wykorzystanie śledzenia promieni w zastosowaniach czasu rzeczywistego pozostaje w sferze badań największych korporacji zajmujących się tym problemem od dekad.
+\textsc{ViRay} został włączony jako część większego systemu przetwarzania danych, w którym ważną rolę odgrywa wykorzystanie mikroprocesora \texttt{Microblaze} oraz sprzętowego kodeka sygnału HDMI \texttt{ADV7511}. Dzięki temu możliwym jest animowanie sceny poprzez zmianę parametrów obiektów i oglądanie efektów tych zmian na wyświetlaczu monitora/telewizora.
 
 %\begin{center}
 %\vspace{2em}

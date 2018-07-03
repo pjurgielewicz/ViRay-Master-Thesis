@@ -43,7 +43,7 @@
 \usepackage[autostyle]{csquotes}
 \usepackage{quotchap}
 \usepackage[bottom]{footmisc}		%%% Set footnotes to the very bottom even if \raggedbottom	is set
-
+\usepackage{tocbibind}				%%% Automatially bind tocs, lof, lot & bib
 
 \pagestyle{fancy}
 \fancyhead{} % clear all header fields
@@ -122,6 +122,7 @@
 \begin{document}
 %\bibliographystyle{IEEEtran}
 \bibliographystyle{merlin}
+
 %\nocite{*} %wszystkie wpisy trafią do bibliografii
 
 
@@ -221,8 +222,10 @@ Akcelerator realistycznej grafiki trójwymiarowej w języku Vivado~HLS dla ukła
 %% =====  TYL STRONY TYTULOWEJ PRACY MAGISTERSKIEJKIEJ ====
 
 \newpage
+\newgeometry{hmargin={2cm, 2cm}, height=10.0in}
 \pagestyle{empty}
-\rightline{Kraków, ?? lipca 2018}
+\rightline{Kraków, 9 lipca 2018}
+\vspace{1.5cm}
 \begin{center}
 {\bf Tematyka pracy magisterskiej i praktyki dyplomowej
 Pawła Jurgielewicza,
@@ -261,7 +264,7 @@ Miejsce praktyki dyplomowej:    & Korporacyjne Centrum Badawcze ABB, Kraków\\
 \end{enumerate}
 
 \noindent
-Termin oddania w dziekanacie: ?? lipca 2018\\
+Termin oddania w dziekanacie: 9 lipca 2018\\
 
 \begin{center}
 \begin{tabular}{lcr}
@@ -270,6 +273,7 @@ Termin oddania w dziekanacie: ?? lipca 2018\\
 (podpis kierownika katedry) & & (podpis opiekuna) \\
 \end{tabular}
 \end{center}
+\clearpage{\pagestyle{empty}\cleardoublepage}
 
 %% =====  RECENZJE  ====
 
@@ -277,6 +281,7 @@ Termin oddania w dziekanacie: ?? lipca 2018\\
 \thispagestyle{empty}
 Recenzja opiekuna
 \clearpage{\pagestyle{empty}\cleardoublepage}
+
 \newpage
 \thispagestyle{empty}
 Recenzja recenzenta
@@ -290,7 +295,7 @@ Recenzja recenzenta
 \newpage
 \thispagestyle{empty}
 {\color{white}
-\rule{1cm}{6cm}
+\rule{1cm}{9cm}
 }
 \begin{center}
 \includegraphics[scale=0.5]{img/abb.png}
@@ -305,14 +310,32 @@ Niniejsza praca została zrealizowana dzięki wsparciu technologicznemu Korporac
 
 \clearpage{\pagestyle{empty}\cleardoublepage}
 \newpage
-\newgeometry{top=5cm, bottom=5cm,inner=3cm, outer=3cm, headsep=1.5cm, headheight=16pt}
+%\thispagestyle{empty}
+%\begin{center}
+%
+%\end{center}
+
+
+
+%\newgeometry{top=5cm, bottom=5cm,inner=3cm, outer=3cm, headsep=1.5cm, headheight=16pt}
 \thispagestyle{empty}
-\vspace*{15cm} \vfill
-\begin{flushright} 
-\begin{minipage}[!h]{7.5cm}
-{\Large\itshape {PODZIĘKOWANIA}}
+%\vspace*{15cm} \vfill
+\begin{center} 
+\begin{minipage}[!h]{12cm}
+{
+\vspace{5cm}
+\large\itshape {
+\centering
+Kiedy rozpoczynałem pracę nad projektem opisanym na~kartach tejże pracy, nie zdawałem sobie sprawy z rangi wyzwania przed jakim zostałem postawiony. Kiedy zaś zaczął kończyć się czas na jego rozbudowę i~ulepszanie, zacząłem czuć niedosyt związany z tym, iż~pewnych funkcjonalności nie uda mi się już zaimplementować. Na~początku tej drogi, gdy nic się nie udawało potrzebowałem wsparcia i pocieszenia, zaś na jej końcu pozytywnego hamulca, dzięki któremu projekt udało się utrzymać w~ryzach czasowych. Właśnie dlatego moje najszczersze podziękowania należą się mojej żonie Beacie - tylko tyle i aż tyle.
+\newline\newline\newline
+Projekt ten nigdy by też nie powstał, gdyby nie bezgraniczna wiara Daniela Lewandowskiego w to, iż~podołam postawionemu zadaniu, pomimo tego że przez bardzo długi okres rezultaty nie napawały optymizmem, a moje zrozumienie wielu technicznych aspektów było dalekie od~oczekiwanych. Dzięki Daniel za poświęcony czas!
+%PODZIĘKOWANIA
+}}
 \end{minipage}
-\end{flushright} 
+\end{center}
+
+
+ 
 \pagestyle{fancy}  
 \restoregeometry
 \clearpage{\pagestyle{empty}\cleardoublepage}
@@ -321,20 +344,23 @@ Niniejsza praca została zrealizowana dzięki wsparciu technologicznemu Korporac
 \renewcommand{\tablename}{Tab.}
 \renewcommand{\listtablename}{Spis tabel}
 
-\addcontentsline{toc}{chapter}{Spis treści}
+
 \tableofcontents
+%\addcontentsline{toc}{chapter}{Spis treści}
 \clearpage{\pagestyle{empty}\cleardoublepage}
 
-\addcontentsline{toc}{chapter}{Spis obrazów}
+
 \listoffigures
+%\addcontentsline{toc}{chapter}{Spis rysunków}
 \clearpage{\pagestyle{empty}\cleardoublepage}
 
 %\addcontentsline{toc}{chapter}{List of tables}
 %\listoftables
 %\clearpage{\pagestyle{empty}\cleardoublepage}
 
-\addcontentsline{toc}{chapter}{Spis tabel}
+
 \listoftables
+%\addcontentsline{toc}{chapter}{Spis tabel}
 \clearpage{\pagestyle{empty}\cleardoublepage}
 
 %\addcontentsline{toc}{chapter}{Wykaz skrótów}
@@ -356,7 +382,7 @@ Niniejsza praca została zrealizowana dzięki wsparciu technologicznemu Korporac
 
 %% =====  RAY TRACING I FIZYKA  ====
 
-%% wyłączone ze wzlględu na czas kompilacji
+% wyłączone ze wzlględu na czas kompilacji
 \input{chapters/ch1/ray_tracing}
 \clearpage{\pagestyle{empty}\cleardoublepage}
 
@@ -377,12 +403,12 @@ Niniejsza praca została zrealizowana dzięki wsparciu technologicznemu Korporac
 
 %% =====  BIBLIOGRAFIA  ====
 
-\addcontentsline{toc}{chapter}{Bibliografia}
 %\bibliography{IEEEabrv,bibliography}
 
-\appendix
+%\appendix
 %\input{chapters/Appendix}
 
 \bibliography{bibliography}
+%\addcontentsline{toc}{chapter}{Bibliografia}
 \clearpage{\pagestyle{empty}\cleardoublepage}
 \end{document}
