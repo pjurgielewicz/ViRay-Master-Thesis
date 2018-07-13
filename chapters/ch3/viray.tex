@@ -614,7 +614,7 @@ W tym przypadku rozwiązanie przybliżone oparte jest o tablicę 33 wartości, b
 \centering
 \subfigure{\includegraphics[width=0.8\textwidth]{chapters/ch3/img/acos_error.png}}
 \subfigure{\includegraphics[width=0.8\textwidth]{chapters/ch3/img/acos_relative_error.png}}
-\caption[Błąd bezwzględny oraz względny generowany przez przybliżoną implementację funkcji \texttt{acos()}]{Błąd bezwzględny oraz względny generowany przez przybliżoną implementację funkcji \texttt{acos()}. Maksymalny błąd wynosi $0.0624\ \mathrm{rad}$, który występuje w okolicach 0 oraz $\pi$ radianów, a związane jest to z faktem, iż funkcja \texttt{acos()} przejawia tam największe odstępstwa od liniowości~($\frac{\mathrm{d}(\arccos(x))}{\mathrm{d}x} = \frac{1}{\frac{\mathrm{d}\cos(x)}{\mathrm{d}x}} = -\frac{1}{\sin(x)}$). Mimo tej jednej niedogodności, zastosowane przybliżenie sprawdza się podczas teksturowania obiektów}
+\caption[Błąd bezwzględny oraz względny generowany przez przybliżoną implementację funkcji \texttt{acos()}]{Błąd bezwzględny oraz względny generowany przez przybliżoną implementację funkcji \texttt{acos()}. Maksymalny błąd wynosi $0,0624\ \mathrm{rad}$, który występuje w okolicach 0 oraz $\pi$ radianów, a związane jest to z faktem, iż funkcja \texttt{acos()} przejawia tam największe odstępstwa od liniowości~($\frac{\mathrm{d}(\arccos(x))}{\mathrm{d}x} = \frac{1}{\frac{\mathrm{d}\cos(x)}{\mathrm{d}x}} = -\frac{1}{\sin(x)}$). Mimo tej jednej niedogodności, zastosowane przybliżenie sprawdza się podczas teksturowania obiektów}
 \label{ch3:img:acos_error}
 \end{figure}
 
@@ -719,7 +719,7 @@ Zaprezentowany w poprzednim podrozdziale moduł \textsc{ViRay} jest w pełni fun
 \end{enumerate}
 Na podstawie tychże wytycznych został zaprojektowany pełen system przetwarzania danych, którego uproszczona wersja schematu blokowego została przedstawiona na schemacie~\ref{ch3:img:block_design}.
 
-Za kontrolę działania omawianego systemu oraz dostarczenie poprawnych danych do \textsc{ViRay}'a odpowiada program w języku C++ wykonywany przez mikrokontroler \texttt{Microblaze}. Został on skonfigurowany w taki sposób aby mógł wykonywać sprzętowo, a nie poprzez emulację, wszystkie operacje zmiennoprzecinkowe pojedynczej precyzji. Dodatkowo jego pamięć na dane oraz instrukcje została rozszerzona do 256~KB każda i nie korzysta on z pamięci podręcznej. Do dyspozycji mikrokontrolera zostały oddane również dodatkowe moduły jak:
+Za kontrolę działania omawianego systemu oraz dostarczenie poprawnych danych do \textsc{ViRay}'a odpowiada program w języku C++ wykonywany przez mikrokontroler \texttt{Microblaze}. Został on skonfigurowany w taki sposób aby mógł wykonywać sprzętowo, a nie poprzez emulację, wszystkie operacje zmiennoprzecinkowe pojedynczej precyzji. Dodatkowo jego pamięć na dane oraz instrukcje została rozszerzona do 256~kB każda i nie korzysta on z pamięci podręcznej. Do dyspozycji mikrokontrolera zostały oddane również dodatkowe moduły jak:
 \begin{itemize}
 \item \texttt{UART}, dzięki któremu możliwe jest odbieranie i wysyłanie komunikatów tekstowych podawanych przez wyjście/wejście standardowe.
 \item Licznik czasu pozwalający przeprowadzić diagnostykę czasu wykonania operacji.
@@ -840,7 +840,7 @@ Ponadto, gdyby nie dostęp do najnowocześniejszego układu FPGA śledzenie prom
 \item implementacja modelu BRDF Orena-Nayara do samego końca nie była pewna w finalnej wersji \textsc{ViRay}'a, gdyż dodanie odpowiedniego kodu związanego z obliczeniem właściwego współczynnika całkowicie uniemożliwiało implementację w układzie FPGA nawet dla niskich częstotliwości pracy.
 \end{itemize}
 
-Mimo wielu napotkanych przeciwności, finalny moduł \textsc{ViRay} został zintegrowany w~pełnym systemie przetwarzania danych, kontrolowanym przez mikroprocesor \texttt{Microblaze}. Wyniki działania \textsc{ViRay}'a w postaci animacji są generowane z szybkością 19~klatek obrazu na~sekundę w rozdzielczości 1920~x~1080~pikseli i można je zobaczyć podłączając monitor/telewizor do źródła HDMI znajdującego się na wykorzystanej płytce ewaluacyjnej KCU116.
+Mimo wielu napotkanych przeciwności, finalny moduł \textsc{ViRay} został zintegrowany w~pełnym systemie przetwarzania danych, kontrolowanym przez mikroprocesor \texttt{Microblaze}. Wyniki działania \textsc{ViRay}'a w postaci animacji są generowane z szybkością 19~klatek obrazu na~sekundę w rozdzielczości 1920~x~1080~pikseli i można je zobaczyć podłączając monitor lub telewizor do źródła HDMI znajdującego się na wykorzystanej płytce ewaluacyjnej KCU116.
 
 \begin{center}
 $*\qquad *\qquad *$
