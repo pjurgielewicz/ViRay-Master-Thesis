@@ -1,0 +1,30 @@
+% PORÓWNANIE Z WERSJĄ HLS, GDZIE JEST TYLKO TA JEDNA FUNKCJA ATAN/ACOS
+%\begin{table}[]
+%\centering
+%\caption{My caption}
+%\label{my-label}
+%\begin{tabular}{|r|c|c|c|c|}
+%\hline
+%\multicolumn{1}{|l|}{}       & \textbf{BRAM} & \textbf{DSP} & \textbf{FF} & \textbf{LUT} \\ \hline
+%\texttt{ViRayUtils::Atan2()} & 0             & 5            & 1153        & 2064         \\ \hline
+%\texttt{hls:atan2()}         & 4             & 2            & 1512        & 4166         \\ \hline
+%\texttt{ViRayUtils::Acos()}  & 1             & 8            & 920         & 1785         \\ \hline
+%\texttt{hls::acos()}         & 0             & 7            & 1721        & 3136         \\ \hline
+%\end{tabular}
+%\end{table}
+
+\begin{table}[H]
+\centering
+\caption[Wykorzystanie zasobów sprzętowych układu KCU116 przez poszczególne implementacje funkcji cyklometrycznych]{Raportowane wykorzystanie zasobów sprzętowych układu KCU116 przez poszczególne implementacje funkcji cyklometrycznych. Funkcje biblioteczne \texttt{hls::atan2()} oraz \texttt{hls::acos()} dające najdokładniejsze wyniki wymagają dużej ilości zasobów do ich fizycznej implementacji~(zwłaszcza FF oraz LUT). Zaproponowane implementacje przybliżone \texttt{ViRayUtils::Atan2()} oraz \texttt{ViRayUtils::Acos()} wymagają o wiele mniej logiki układu, zachowując przy tym dokładność wystarczającą podczas teksturowania obiektów}
+\label{ch3:tab:atan_acos}
+\begin{tabular}{|r|c|c|c|c|}
+\hline
+\multicolumn{1}{|l|}{}       & \textbf{BRAM} & \textbf{DSP} & \textbf{FF} & \textbf{LUT} \\ \hline\hline
+
+\texttt{hls::atan2()}         & 0             & 2            & 12713       & 16742        \\ \hline
+\texttt{hls::acos()}         & 0             & 50           & 12022       & 8038         \\ \hline\hline
+\texttt{ViRayUtils::Atan2()} & 0             & 5            & 1153        & 2064         \\ \hline
+\texttt{ViRayUtils::Acos()}  & 1             & 8            & 920         & 1785         \\ \hline
+
+\end{tabular}
+\end{table}
